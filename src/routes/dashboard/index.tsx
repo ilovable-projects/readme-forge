@@ -251,8 +251,12 @@ function DashboardPage() {
                  <CardDescription>Recently generated README files.</CardDescription>
                </CardHeader>
                <CardContent className="space-y-4">
-                   {[].map((doc, i) => (
-                    <Link key={i} to="/editor" className="flex items-center justify-between p-3 rounded-lg hover:bg-secondary/30 transition-colors group cursor-pointer">
+                 {[
+                   { name: "README.md", repo: "react-query-auth", date: "2h ago" },
+                   { name: "CONTRIBUTING.md", repo: "shadcn-ui", date: "1d ago" },
+                   { name: "INSTALL.md", repo: "readme-forge", date: "3d ago" }
+                 ].map((doc, i) => (
+                   <Link key={i} to="/editor" className="flex items-center justify-between p-3 rounded-lg hover:bg-secondary/30 transition-colors group cursor-pointer">
                      <div className="flex items-center gap-3">
                        <FileText className="h-4 w-4 text-primary" />
                        <div>
@@ -260,8 +264,9 @@ function DashboardPage() {
                          <p className="text-xs text-muted-foreground">{doc.repo}</p>
                        </div>
                      </div>
-                      <span className="text-xs text-muted-foreground">{doc.date}</span>
-                    </Link>
+                     <span className="text-xs text-muted-foreground">{doc.date}</span>
+                   </Link>
+                 ))}
                  ))}
                </CardContent>
              </Card>

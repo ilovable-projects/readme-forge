@@ -66,7 +66,7 @@ function EditorPage() {
       const { data, error } = await supabase
         .from('readme_documents')
         .select('*')
-        .eq('repository_id', repositoryId)
+        .eq('repository_id', repositoryId!)
         .order('updated_at', { ascending: false })
         .limit(1)
         .maybeSingle();

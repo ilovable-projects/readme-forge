@@ -82,7 +82,7 @@ function HealthPage() {
       const { data, error } = await supabase
         .from('readme_scores')
         .select('*')
-        .eq('readme_document_id', documentId)
+        .eq('readme_document_id', documentId!)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
