@@ -99,7 +99,7 @@ function AuthPage() {
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <form onSubmit={(e) => { e.preventDefault(); handleEmailAuth('login'); }} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input 
@@ -109,6 +109,7 @@ function AuthPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="bg-background/50"
+                    required
                   />
                 </div>
                 <div className="space-y-2">
@@ -119,9 +120,10 @@ function AuthPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="bg-background/50"
+                    required
                   />
                 </div>
-              </div>
+              </form>
             </div>
 
             <TabsContent value="login" className="mt-4 space-y-4">

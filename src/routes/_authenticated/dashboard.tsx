@@ -80,13 +80,13 @@ function DashboardPage() {
   return (
     <div className="flex min-h-screen bg-background">
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-64 border-r border-border/40 bg-card/30 backdrop-blur-xl">
-        <div className="flex h-16 items-center gap-2 px-6 border-b border-border/40">
+      <aside className="fixed left-0 top-0 h-full w-64 border-r border-border/40 bg-card/30 backdrop-blur-xl hidden lg:block">
+        <Link to="/dashboard" className="flex h-16 items-center gap-2 px-6 border-b border-border/40 hover:bg-secondary/20 transition-colors">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
             <Code2 className="h-5 w-5 text-primary-foreground" />
           </div>
           <span className="text-lg font-bold tracking-tight">READMEForge</span>
-        </div>
+        </Link>
         <nav className="p-4 space-y-2 flex flex-col h-[calc(100%-4rem)]">
           <div className="flex-1 space-y-2">
             <Link to="/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium transition-colors">
@@ -114,12 +114,12 @@ function DashboardPage() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 ml-64 p-8">
+      <main className="flex-1 lg:ml-64 p-4 md:p-8 overflow-x-hidden">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user?.email?.split('@')[0]}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Welcome back, {user?.email?.split('@')[0]}</h1>
               <p className="text-muted-foreground">Manage your repository documentation and health scores.</p>
             </div>
             <Button className="rounded-lg shadow-lg shadow-primary/20" asChild>

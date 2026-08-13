@@ -136,7 +136,7 @@ function AnalyzerPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="mx-auto max-w-4xl space-y-8">
         <div className="space-y-2 text-center md:text-left">
           <h1 className="text-3xl font-bold tracking-tight">Repository Analyzer</h1>
@@ -151,10 +151,10 @@ function AnalyzerPage() {
             Import from GitHub
           </h2>
           <Button 
-            variant="ghost" 
+            variant="outline" 
             size="sm" 
             onClick={() => setShowUrlInput(!showUrlInput)}
-            className="text-primary hover:text-primary hover:bg-primary/10"
+            className="text-primary border-primary/20 hover:bg-primary/5"
           >
             {showUrlInput ? "Select from list" : "Enter URL manually"}
             {showUrlInput ? <ArrowRight className="ml-2 h-4 w-4 rotate-180" /> : <Plus className="ml-2 h-4 w-4" />}
