@@ -128,7 +128,7 @@ export function RepositorySelector({
       <div className="grid gap-3">
         {filteredAndSortedRepos.length === 0 ? (
           <div className="text-center py-12 border border-dashed border-border/50 rounded-xl bg-muted/5">
-            <Github className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+            <GitGraph className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
             <p className="text-muted-foreground">No repositories found matching your criteria.</p>
           </div>
         ) : (
