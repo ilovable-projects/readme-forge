@@ -336,7 +336,7 @@ function DashboardPage() {
                         </div>
                         <div className="flex gap-2">
                           <Button variant="ghost" size="icon" className="opacity-0 lg:group-hover:opacity-100 transition-opacity" asChild title="View on GitHub">
-                            <a href={repo.url} target="_blank" rel="noopener noreferrer">
+                            <a href={repo.github_url} target="_blank" rel="noopener noreferrer">
                               <ExternalLink className="h-4 w-4" />
                             </a>
                           </Button>
