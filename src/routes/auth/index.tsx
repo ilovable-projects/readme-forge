@@ -155,23 +155,25 @@ function AuthPage() {
               </form>
 
               {activeTab === 'login' && (
-                <Button
-                  variant="link"
-                  className="w-full text-xs text-muted-foreground hover:text-primary transition-colors"
-                  onClick={async () => {
-                    if (!email) {
-                      toast.error("Please enter your email address first.");
-                      return;
-                    }
-                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                      redirectTo: window.location.origin + '/auth/reset-password',
-                    });
-                    if (error) toast.error(error.message);
-                    else toast.success("Password reset email sent!");
-                  }}
-                >
-                  Forgot password?
-                </Button>
+                <div className="flex flex-col space-y-2">
+                  <Button
+                    variant="link"
+                    className="w-full text-xs text-muted-foreground hover:text-primary transition-colors"
+                    onClick={async () => {
+                      if (!email) {
+                        toast.error("Please enter your email address first.");
+                        return;
+                      }
+                      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                        redirectTo: window.location.origin + '/auth/callback?type=recovery',
+                      });
+                      if (error) toast.error(error.message);
+                      else toast.success("Password reset email sent!");
+                    }}
+                  >
+                    Forgot password?
+                  </Button>
+                </div>
               )}
             </div>
           </Tabs>
