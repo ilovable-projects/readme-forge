@@ -13,6 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 import "github-markdown-css/github-markdown-dark.css";
+import "highlight.js/styles/github-dark.css";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 

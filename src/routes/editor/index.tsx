@@ -42,6 +42,8 @@ import { useAuth } from "@/hooks/use-data";
 import { toast } from "sonner";
 import { z } from "zod";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
 import debounce from "lodash.debounce";
 import { useServerFn } from "@tanstack/react-start";
 import { editReadmeSection } from "@/lib/readme-editor.functions";
@@ -406,18 +408,27 @@ function EditorPage() {
 
         <main className="flex flex-1 overflow-hidden">
           <Tabs defaultValue="editor" className="flex flex-1 flex-col overflow-hidden">
-             <div className="flex items-center justify-center border-b border-border/40 px-4 py-1">
-                <TabsList className="bg-transparent border-none">
-                  <TabsTrigger value="editor" className="data-[state=active]:bg-secondary/50">
-                    Editor
-                  </TabsTrigger>
-                  <TabsTrigger value="preview" className="data-[state=active]:bg-secondary/50">
-                    Preview
-                  </TabsTrigger>
-                  <TabsTrigger value="both" className="hidden lg:flex data-[state=active]:bg-secondary/50">
-                    Split View
-                  </TabsTrigger>
-                </TabsList>
+             <div className="sticky top-0 z-20 flex items-center justify-between border-b border-border/40 bg-background/80 px-4 py-1 backdrop-blur-sm">
+                <div className="flex items-center gap-1">
+                  <TabsList className="bg-transparent border-none">
+                    <TabsTrigger value="editor" className="data-[state=active]:bg-secondary/50">
+                      Editor
+                    </TabsTrigger>
+                    <TabsTrigger value="preview" className="data-[state=active]:bg-secondary/50">
+                      Preview
+                    </TabsTrigger>
+                    <TabsTrigger value="both" className="hidden lg:flex data-[state=active]:bg-secondary/50">
+                      Split View
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                   <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-md bg-secondary/30 border border-border/20 text-[10px] text-muted-foreground font-mono">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                      Markdown Mode
+                   </div>
+                </div>
              </div>
 
              <TabsContent value="editor" className="flex-1 m-0 p-0 overflow-hidden relative">
@@ -429,18 +440,38 @@ function EditorPage() {
                 )}
                 <textarea 
                   ref={textareaRef}
-                  className="h-full w-full resize-none bg-background p-8 font-mono text-sm leading-relaxed outline-none focus:ring-0"
+                  className="h-full w-full resize-none bg-background p-8 font-mono text-sm leading-relaxed outline-none focus:ring-0 custom-scrollbar"
                   value={markdown}
                   onChange={handleMarkdownChange}
                   placeholder="Start writing your README..."
                 />
              </TabsContent>
 
-             <TabsContent value="preview" className="flex-1 m-0 p-0 overflow-y-auto bg-card/5">
-                <div className="mx-auto max-w-4xl p-8 lg:p-12">
-                   <div className="markdown-body !bg-transparent !font-sans max-w-none">
-                      <ReactMarkdown>{markdown}</ReactMarkdown>
-                   </div>
+             <TabsContent value="preview" className="flex-1 m-0 p-0 overflow-y-auto bg-card/5 scroll-smooth custom-scrollbar">
+                <div className="mx-auto max-w-4xl p-6 sm:p-12">
+                   <Card className="border-border/40 shadow-xl bg-background overflow-hidden">
+                      <CardContent className="p-0">
+                         <div className="flex items-center gap-2 border-b border-border/40 bg-secondary/20 px-4 py-2">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-xs font-medium text-muted-foreground tracking-tight">README.md</span>
+                            <div className="ml-auto flex items-center gap-1.5">
+                               <div className="h-2 w-2 rounded-full bg-border"></div>
+                               <div className="h-2 w-2 rounded-full bg-border"></div>
+                               <div className="h-2 w-2 rounded-full bg-border"></div>
+                            </div>
+                         </div>
+                         <div className="p-6 sm:p-10">
+                            <div className="markdown-body !bg-transparent !font-sans max-w-none prose dark:prose-invert prose-pre:p-0 prose-pre:bg-transparent">
+                               <ReactMarkdown 
+                                 remarkPlugins={[remarkGfm]} 
+                                 rehypePlugins={[rehypeHighlight]}
+                               >
+                                 {markdown}
+                               </ReactMarkdown>
+                            </div>
+                         </div>
+                      </CardContent>
+                   </Card>
                 </div>
              </TabsContent>
 
@@ -453,15 +484,27 @@ function EditorPage() {
                       </div>
                     )}
                     <textarea 
-                      className="h-full w-full resize-none bg-background p-6 font-mono text-sm leading-relaxed outline-none focus:ring-0"
+                      className="h-full w-full resize-none bg-background p-6 font-mono text-sm leading-relaxed outline-none focus:ring-0 custom-scrollbar"
                       value={markdown}
                       onChange={handleMarkdownChange}
                     />
                   </div>
-                  <div className="flex-1 overflow-y-auto p-6 lg:p-8 bg-card/5">
-                     <div className="markdown-body !bg-transparent !font-sans !text-sm max-w-none">
-                        <ReactMarkdown>{markdown}</ReactMarkdown>
-                     </div>
+                  <div className="flex-1 overflow-y-auto p-8 bg-card/5 custom-scrollbar">
+                    <Card className="border-border/40 shadow-lg bg-background overflow-hidden">
+                       <div className="flex items-center gap-2 border-b border-border/40 bg-secondary/10 px-4 py-2">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Preview</span>
+                       </div>
+                       <div className="p-6">
+                          <div className="markdown-body !bg-transparent !font-sans !text-[13px] max-w-none prose dark:prose-invert prose-pre:p-0 prose-pre:bg-transparent">
+                             <ReactMarkdown 
+                               remarkPlugins={[remarkGfm]} 
+                               rehypePlugins={[rehypeHighlight]}
+                             >
+                               {markdown}
+                             </ReactMarkdown>
+                          </div>
+                       </div>
+                    </Card>
                   </div>
                 </div>
              </TabsContent>
