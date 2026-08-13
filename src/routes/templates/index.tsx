@@ -21,13 +21,13 @@ import {
   DialogDescription,
   DialogFooter
 } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useEffect } from "react";
 import { TEMPLATES, type TemplateConfig } from "@/lib/readme-templates";
 import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-data";
 import { toast } from "sonner";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 export const Route = createFileRoute("/templates/")({
   component: TemplatesPage,
@@ -43,7 +43,6 @@ function TemplatesPage() {
   const [lastRepositoryId, setLastRepositoryId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get the most recently analyzed repository for this user
     if (user) {
       supabase
         .from('repositories')
@@ -71,7 +70,6 @@ function TemplatesPage() {
 
     setIsApplying(true);
     try {
-      // 1. Check if a README already exists
       const { data: existingDoc } = await supabase
         .from('readme_documents')
         .select('*')
@@ -80,33 +78,28 @@ function TemplatesPage() {
         .limit(1)
         .maybeSingle();
 
-      // 2. Prepare content
-      const badges = template.default_badges.map(b => \`![Badge](\${b})\`).join(' ');
-      const content = \`# Project Name\n\n\${badges}\n\n\${template.section_order.map(s => \`## \${s}\n\nPlaceholder for \${s.toLowerCase()}...\`).join('\n\n')}\`;
+      const badgeStr = template.default_badges.map(b => `![Badge](https://img.shields.io/badge/${b}-template-blue)`).join(' ');
+      const content = `# Project Name\n\n${badgeStr}\n\n${template.section_order.map(s => `## ${s}\n\nPlaceholder for ${s.toLowerCase()}...`).join('\n\n')}`;
 
       if (existingDoc && existingDoc.markdown_content) {
-        // If content exists, we would ideally merge it. For now, we confirm.
         setConfirmTemplate(template);
         setIsApplying(false);
         return;
       }
 
-      // 3. Create document
-      const { data: newDoc, error } = await supabase
+      const { error } = await supabase
         .from('readme_documents')
         .insert([{
           user_id: user.id,
           repository_id: lastRepositoryId,
-          title: \`README (\${template.name})\`,
+          title: `README (${template.name})`,
           markdown_content: content,
           template: template.id
-        }])
-        .select()
-        .single();
+        }]);
 
       if (error) throw error;
 
-      toast.success(\`Template "\${template.name}" applied!\`);
+      toast.success(`Template "${template.name}" applied!`);
       navigate({ to: '/editor', search: { repositoryId: lastRepositoryId } });
     } catch (error: any) {
       toast.error("Failed to apply template: " + error.message);
@@ -120,8 +113,8 @@ function TemplatesPage() {
     
     setIsApplying(true);
     try {
-      const badges = confirmTemplate.default_badges.map(b => \`![Badge](\${b})\`).join(' ');
-      const content = \`# Project Name\n\n\${badges}\n\n\${confirmTemplate.section_order.map(s => \`## \${s}\n\nPlaceholder for \${s.toLowerCase()}...\`).join('\n\n')}\`;
+      const badgeStr = confirmTemplate.default_badges.map(b => `![Badge](https://img.shields.io/badge/${b}-template-blue)`).join(' ');
+      const content = `# Project Name\n\n${badgeStr}\n\n${confirmTemplate.section_order.map(s => `## ${s}\n\nPlaceholder for ${s.toLowerCase()}...`).join('\n\n')}`;
 
       await supabase
         .from('readme_documents')
@@ -132,7 +125,7 @@ function TemplatesPage() {
         })
         .eq('repository_id', lastRepositoryId);
 
-      toast.success(\`Template "\${confirmTemplate.name}" applied successfully!\`);
+      toast.success(`Template "${confirmTemplate.name}" applied successfully!`);
       navigate({ to: '/editor', search: { repositoryId: lastRepositoryId } });
     } catch (error: any) {
       toast.error("Failed to apply template: " + error.message);
@@ -151,18 +144,21 @@ function TemplatesPage() {
             <p className="text-muted-foreground">Select a professional starting point tailored for your project.</p>
           </div>
           <div className="w-full md:w-80">
-            <Input 
-              placeholder="Search templates..." 
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="bg-card/50 border-border/50"
-            />
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search templates..." 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10 bg-card/50 border-border/50"
+              />
+            </div>
           </div>
         </header>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredTemplates.map((template) => (
-            <Card key={template.id} className="group border-border/40 bg-card/50 hover:bg-card/80 transition-all hover:-translate-y-1">
+            <Card key={template.id} className="group border-border/40 bg-card/50 hover:bg-card/80 transition-all hover:-translate-y-1 flex flex-col">
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="h-12 w-12 rounded-xl bg-primary/5 flex items-center justify-center border border-primary/10 group-hover:bg-primary/10 transition-colors">
@@ -175,7 +171,7 @@ function TemplatesPage() {
                 <CardTitle className="mt-4">{template.name}</CardTitle>
                 <CardDescription className="line-clamp-2 mt-1 min-h-[40px]">{template.description}</CardDescription>
               </CardHeader>
-              <CardContent className="pb-4 space-y-4">
+              <CardContent className="pb-4 space-y-4 flex-1">
                 <div className="space-y-2">
                   <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Recommended for</span>
                   <p className="text-xs text-muted-foreground leading-relaxed">{template.recommended_for}</p>
@@ -211,7 +207,6 @@ function TemplatesPage() {
           ))}
         </div>
 
-        {/* Preview Dialog */}
         <Dialog open={!!previewTemplate} onOpenChange={(open) => !open && setPreviewTemplate(null)}>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
             <DialogHeader>
@@ -255,7 +250,6 @@ function TemplatesPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Confirmation Dialog */}
         <Dialog open={!!confirmTemplate} onOpenChange={(open) => !open && setConfirmTemplate(null)}>
           <DialogContent>
             <DialogHeader>
@@ -284,7 +278,6 @@ function TemplatesPage() {
           </DialogContent>
         </Dialog>
 
-        {/* AI Customization Callout */}
         <Card className="border-primary/20 bg-primary/5 p-8 relative overflow-hidden">
            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="space-y-2 text-center md:text-left">
@@ -299,7 +292,6 @@ function TemplatesPage() {
                  Generate Custom Layout
               </Button>
            </div>
-           {/* Abstract Background Element */}
            <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/10 blur-[100px]" />
            <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-primary/5 blur-[100px]" />
         </Card>
