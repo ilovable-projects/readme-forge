@@ -41,6 +41,7 @@ export const analyzeRepository = createServerFn({ method: "POST" })
   .validator((data) => z.string().url().parse(data))
   .handler(async ({ data: repoUrl, context }) => {
     const userId = context.userId;
+    if (!repoUrl) throw new Error("URL is required");
 
     const GITHUB_TOKEN = process.env['GITHUB_TOKEN'];
     const octokit = new Octokit({ auth: GITHUB_TOKEN });
@@ -267,7 +268,7 @@ export const analyzeRepository = createServerFn({ method: "POST" })
           github_url: `https://github.com/${owner}/${repo}`,
           owner: result.repository.owner,
           name: result.repository.name,
-          description: result.repository.description?.substring(0, 1000),
+          description: result.repository.description?.substring(0, 1000) || null,
           default_branch: result.repository.default_branch,
           language: result.repository.language,
           stars: result.repository.stars,

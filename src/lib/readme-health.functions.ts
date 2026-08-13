@@ -37,8 +37,20 @@ const scoreRequestSchema = z.object({
 export const calculateReadmeScore = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data) => scoreRequestSchema.parse(data))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { documentId, repositoryId, content } = data;
+    const userId = context.userId;
+
+    // Verify ownership
+    const { data: docOwner } = await supabaseAdmin
+      .from('readme_documents')
+      .select('user_id')
+      .eq('id', documentId)
+      .single();
+
+    if (!docOwner || docOwner.user_id !== userId) {
+      throw new Error("Unauthorized");
+    }
     
     // 1. Fetch Analysis Context
     const { data: analysisData, error: analysisError } = await supabaseAdmin
