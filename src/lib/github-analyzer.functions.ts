@@ -119,7 +119,8 @@ export const analyzeRepository = createServerFn({ method: "POST" })
       // Extract safe env var names from .env.example
       const envExamplePath = foundConfigFiles.find(f => f.endsWith(".env.example"));
       if (envExamplePath && detectedConfigs[envExamplePath]) {
-        const lines = detectedConfigs[envExamplePath].split("\n");
+        const content = detectedConfigs[envExamplePath];
+        const lines = content.split("\n");
         technologies.env_vars = lines
           .map(line => line.split("=")[0].trim())
           .filter(name => name && !name.startsWith("#"));
