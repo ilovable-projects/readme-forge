@@ -74,7 +74,7 @@ function LandingPage() {
       {/* Navigation */}
       <nav className="fixed top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link to="/" className="flex items-center gap-2 group">
+          <Link to="/" className="flex items-center gap-2 group" aria-label="READMEForge Home">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary group-hover:scale-105 transition-transform">
               <Code2 className="h-5 w-5 text-primary-foreground" />
             </div>
@@ -138,58 +138,57 @@ function LandingPage() {
               </p>
             </header>
 
-              {/* Visual Demo Card */}
-              <div className="relative mx-auto max-w-5xl rounded-2xl border border-border/40 bg-card/50 p-2 shadow-2xl backdrop-blur-sm sm:p-4">
-                <div className="flex flex-col gap-4 overflow-hidden rounded-xl border border-border/30 bg-background/80 p-6 md:flex-row">
-                  {/* Analysis Step */}
-                  <div className="flex flex-1 flex-col items-start gap-4 border-b border-border/30 pb-6 text-left md:border-b-0 md:border-r md:pb-0 md:pr-6">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                      <Search className="h-5 w-5 text-primary" />
+            {/* Visual Demo Card */}
+            <div className="relative mx-auto max-w-5xl rounded-2xl border border-border/40 bg-card/50 p-2 shadow-2xl backdrop-blur-sm sm:p-4">
+              <div className="flex flex-col gap-4 overflow-hidden rounded-xl border border-border/30 bg-background/80 p-6 md:flex-row">
+                {/* Analysis Step */}
+                <div className="flex flex-1 flex-col items-start gap-4 border-b border-border/30 pb-6 text-left md:border-b-0 md:border-r md:pb-0 md:pr-6">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                    <Search className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Analysis</h3>
+                    <p className="text-sm text-muted-foreground">Reading dependencies, structure, and metadata.</p>
+                  </div>
+                  <div className="mt-2 w-full space-y-2">
+                    <div className="h-2 w-full rounded-full bg-secondary/50 overflow-hidden">
+                      <div className="h-full w-[65%] bg-primary animate-pulse" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold">Analysis</h3>
-                      <p className="text-sm text-muted-foreground">Reading dependencies, structure, and metadata.</p>
-                    </div>
-                    <div className="mt-2 w-full space-y-2">
-                      <div className="h-2 w-full rounded-full bg-secondary/50 overflow-hidden">
-                        <div className="h-full w-[65%] bg-primary animate-pulse" />
-                      </div>
-                      <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest">
-                        <span>Scanning components...</span>
-                        <span>65%</span>
-                      </div>
+                    <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest">
+                      <span>Scanning components...</span>
+                      <span>65%</span>
                     </div>
                   </div>
-                  
-                  {/* Generation Step */}
-                  <div className="flex flex-1 flex-col items-start gap-4 border-b border-border/30 pb-6 text-left md:border-b-0 md:border-r md:pb-0 md:pr-6 md:pl-6">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                      <Zap className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">AI Generation</h3>
-                      <p className="text-sm text-muted-foreground">Drafting features, installation, and usage guides.</p>
-                    </div>
-                    <div className="mt-2 w-full space-y-1">
-                      <div className="h-3 w-3/4 rounded bg-muted/40" />
-                      <div className="h-3 w-1/2 rounded bg-muted/40" />
-                      <div className="h-3 w-2/3 rounded bg-muted/40" />
-                    </div>
+                </div>
+                
+                {/* Generation Step */}
+                <div className="flex flex-1 flex-col items-start gap-4 border-b border-border/30 pb-6 text-left md:border-b-0 md:border-r md:pb-0 md:pr-6 md:pl-6">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                    <Zap className="h-5 w-5 text-primary" />
                   </div>
+                  <div>
+                    <h3 className="font-semibold">AI Generation</h3>
+                    <p className="text-sm text-muted-foreground">Drafting features, installation, and usage guides.</p>
+                  </div>
+                  <div className="mt-2 w-full space-y-1">
+                    <div className="h-3 w-3/4 rounded bg-muted/40" />
+                    <div className="h-3 w-1/2 rounded bg-muted/40" />
+                    <div className="h-3 w-2/3 rounded bg-muted/40" />
+                  </div>
+                </div>
 
-                  {/* Result Step */}
-                  <div className="flex flex-1 flex-col items-start gap-4 pt-6 text-left md:pt-0 md:pl-6">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                      <BarChart3 className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">README Score</h3>
-                      <p className="text-sm text-muted-foreground">94/100 Health score with improvement tips.</p>
-                    </div>
-                    <div className="mt-2 flex items-baseline gap-1">
-                      <span className="text-3xl font-bold text-primary">94</span>
-                      <span className="text-sm text-muted-foreground">/100</span>
-                    </div>
+                {/* Result Step */}
+                <div className="flex flex-1 flex-col items-start gap-4 pt-6 text-left md:pt-0 md:pl-6">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                    <BarChart3 className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">README Score</h3>
+                    <p className="text-sm text-muted-foreground">94/100 Health score with improvement tips.</p>
+                  </div>
+                  <div className="mt-2 flex items-baseline gap-1">
+                    <span className="text-3xl font-bold text-primary">94</span>
+                    <span className="text-sm text-muted-foreground">/100</span>
                   </div>
                 </div>
               </div>
@@ -349,11 +348,13 @@ function LandingPage() {
               </div>
               <span className="font-bold">READMEForge</span>
             </div>
-            <p className="text-sm text-muted-foreground">© 2026 READMEForge. Built for developers by developers.</p>
-            <div className="flex items-center gap-6">
-              <a href="#" className="text-sm text-muted-foreground hover:text-foreground">Terms</a>
+            <p className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} READMEForge. Built for developers.
+            </p>
+            <div className="flex gap-6">
               <a href="#" className="text-sm text-muted-foreground hover:text-foreground">Privacy</a>
-              <a href="#" className="text-sm text-muted-foreground hover:text-foreground">GitHub</a>
+              <a href="#" className="text-sm text-muted-foreground hover:text-foreground">Terms</a>
+              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground">GitHub</a>
             </div>
           </div>
         </div>
