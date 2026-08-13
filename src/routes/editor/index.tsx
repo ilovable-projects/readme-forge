@@ -414,7 +414,7 @@ function EditorPage() {
 
              <TabsContent value="preview" className="flex-1 m-0 p-0 overflow-y-auto bg-card/5">
                 <div className="mx-auto max-w-4xl p-8 lg:p-12">
-                   <div className="prose prose-invert prose-blue max-w-none">
+                   <div className="markdown-body !bg-transparent !font-sans max-w-none">
                       <ReactMarkdown>{markdown}</ReactMarkdown>
                    </div>
                 </div>
@@ -435,7 +435,7 @@ function EditorPage() {
                     />
                   </div>
                   <div className="flex-1 overflow-y-auto p-6 lg:p-8 bg-card/5">
-                     <div className="prose prose-invert prose-blue prose-sm max-w-none">
+                     <div className="markdown-body !bg-transparent !font-sans !text-sm max-w-none">
                         <ReactMarkdown>{markdown}</ReactMarkdown>
                      </div>
                   </div>
