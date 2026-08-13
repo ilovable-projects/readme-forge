@@ -84,14 +84,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "x-content-type-options", content: "nosniff" },
+      { name: "x-frame-options", content: "DENY" },
+      { name: "x-xss-protection", content: "1; mode=block" },
+      { name: "referrer-policy", content: "strict-origin-when-cross-origin" },
+      { name: "content-security-policy", content: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://img.shields.io https://github.com https://avatars.githubusercontent.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co;" }
     ],
     links: [
       {
