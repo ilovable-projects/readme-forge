@@ -2,11 +2,12 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export const Route = createFileRoute('/auth/callback')({
   validateSearch: (search: Record<string, unknown>) => {
     return {
-      type: (search.type as string) || 'auth',
+      type: (search['type'] as string) || 'auth',
     }
   },
   component: AuthCallbackPage,
@@ -14,14 +15,19 @@ export const Route = createFileRoute('/auth/callback')({
 
 function AuthCallbackPage() {
   const navigate = useNavigate();
-  const { type } = Route.useSearch();
+  const search = Route.useSearch();
+  const type = search['type'];
 
   useEffect(() => {
+    let mounted = true;
+
     const handleAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
+      if (!mounted) return;
+
       if (type === 'recovery') {
-        navigate({ to: '/auth/index' }); // Actually needs a reset page, but for now redirect back to auth
+        navigate({ to: '/auth' }); 
         toast.info("You can now reset your password");
         return;
       }
@@ -29,8 +35,8 @@ function AuthCallbackPage() {
       if (session) {
         navigate({ to: '/dashboard' });
       } else {
-        // Handle cases where session might not be immediately available
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+          if (!mounted) return;
           if (session) {
             navigate({ to: '/dashboard' });
             subscription.unsubscribe();
@@ -40,13 +46,15 @@ function AuthCallbackPage() {
           }
         });
         
-        // Timeout to prevent infinite spinner
         const timeout = setTimeout(() => {
-          subscription.unsubscribe();
-          navigate({ to: '/auth' });
+          if (mounted) {
+            subscription.unsubscribe();
+            navigate({ to: '/auth' });
+          }
         }, 10000);
 
         return () => {
+          mounted = false;
           clearTimeout(timeout);
           subscription.unsubscribe();
         };
@@ -54,6 +62,10 @@ function AuthCallbackPage() {
     };
 
     handleAuth();
+
+    return () => {
+      mounted = false;
+    };
   }, [navigate, type]);
 
   return (
