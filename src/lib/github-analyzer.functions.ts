@@ -38,11 +38,13 @@ const githubUrlSchema = z.string().url().refine((url) => {
 
 export const analyzeRepository = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: unknown) => z.string().url().parse(data))
+  .validator((data: unknown) => {
+    if (typeof data !== 'string') throw new Error("URL must be a string");
+    return z.string().url().parse(data);
+  })
   .handler(async ({ data, context }) => {
     const userId = context.userId;
-    const urlString = data as string;
-    if (!urlString) throw new Error("URL is required");
+    const urlString: string = data;
 
     const GITHUB_TOKEN = process.env['GITHUB_TOKEN'];
     const octokit = new Octokit({ auth: GITHUB_TOKEN });
