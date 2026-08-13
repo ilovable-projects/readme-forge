@@ -314,6 +314,10 @@ export const analyzeRepository = createServerFn({ method: "POST" })
       if (analysisError) throw analysisError;
 
       // Security: Repository content is treated as untrusted data during analysis.
+      // '''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''
+                                              
+                                                  
+                                                  
       return repoData;
     } catch (error: any) {
       if (error.status === 404) {
