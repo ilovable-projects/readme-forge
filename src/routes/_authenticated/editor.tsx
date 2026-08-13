@@ -120,6 +120,7 @@ function EditorPage() {
   const updateWithAiFn = useServerFn(updateReadmeWithAi);
 
   const [markdown, setMarkdown] = useState("");
+  const [deferredMarkdown, setDeferredMarkdown] = useState("");
   const [initialMarkdown, setInitialMarkdown] = useState("");
   const [history, setHistory] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -179,8 +180,10 @@ function EditorPage() {
       if (error) throw error;
       
       if (data) {
-        setMarkdown(data.markdown_content || "");
-        setInitialMarkdown(data.markdown_content || "");
+        const content = data.markdown_content || "";
+        setMarkdown(content);
+        setDeferredMarkdown(content);
+        setInitialMarkdown(content);
         setDocumentId(data.id);
         // Check freshness after loading
         handleCheckFreshness(repositoryId!, data.id);
@@ -247,6 +250,17 @@ function EditorPage() {
     }
   }, [markdown, documentId, debouncedSave, initialMarkdown]);
 
+  const debouncedPreviewUpdate = useCallback(
+    debounce((content: string) => {
+      setDeferredMarkdown(content);
+    }, 100),
+    []
+  );
+
+  useEffect(() => {
+    debouncedPreviewUpdate(markdown);
+  }, [markdown, debouncedPreviewUpdate]);
+
   const handleMarkdownChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMarkdown(e.target.value);
   };
@@ -256,6 +270,7 @@ function EditorPage() {
       const prev = history[history.length - 1];
       if (prev !== undefined) {
         setMarkdown(prev);
+        setDeferredMarkdown(prev);
       }
       setHistory(prevHistory => prevHistory.slice(0, -1));
       toast.info("Changes reverted");
