@@ -3,6 +3,7 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { StructuredAnalysis } from "./github-analyzer.functions";
+import { checkReadmeAccuracy } from "./readme-accuracy.functions";
 
 export interface CategoryResult {
   score: number;
@@ -256,6 +257,13 @@ export const calculateReadmeScore = createServerFn({ method: "POST" })
       }, { onConflict: 'readme_document_id' });
 
     if (scoreError) console.error("Failed to save score:", scoreError);
+
+    // Trigger Accuracy Check (Async)
+    try {
+      await checkReadmeAccuracy({ data: { documentId, repositoryId, content } });
+    } catch (e) {
+      console.error("Accuracy check failed:", e);
+    }
 
     return result;
   });
