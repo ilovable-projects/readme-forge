@@ -476,73 +476,113 @@ function EditorPage() {
           </div>
         </div>
         
-        <div className="hidden xl:flex items-center gap-2">
-          {history.length > 0 && (
-            <Button variant="ghost" size="sm" onClick={handleUndo}>
-              <Undo2 className="mr-2 h-4 w-4" />
-              Undo
-            </Button>
-          )}
-          <Button variant="outline" size="sm" onClick={handleReset}>
-            <RefreshCcw className="mr-2 h-4 w-4" />
-            Reset
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setIsCommitModalOpen(true)} className="border-primary/20 hover:bg-primary/5">
-            <Code2 className="mr-2 h-4 w-4" />
-            Commit to GitHub
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setIsExportModalOpen(true)}>
-            <ExternalLink className="mr-2 h-4 w-4" />
-            Export
-          </Button>
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/templates">
-              <Layers className="mr-2 h-4 w-4" />
-              Change Template
-            </Link>
-          </Button>
-          <Button size="sm" className="bg-primary hover:bg-primary/90" onClick={() => debouncedSave(markdown, documentId)} disabled={isSaving}>
-            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            Save
-          </Button>
-        </div>
+        <div className="flex items-center gap-2">
+          {/* Desktop Actions */}
+          <div className="hidden xl:flex items-center gap-2">
+            {history.length > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="sm" onClick={handleUndo}>
+                    <Undo2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Undo last action</TooltipContent>
+              </Tooltip>
+            )}
+            
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="sm" onClick={handleReset}>
+                  <RefreshCcw className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Reset to initial version</TooltipContent>
+            </Tooltip>
 
-        <div className="flex xl:hidden items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                Actions
-                <ChevronRight className="ml-2 h-4 w-4 rotate-90" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>README Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleReset}>
-                <RefreshCcw className="mr-2 h-4 w-4" />
-                Reset Version
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setIsCommitModalOpen(true)}>
-                <Code2 className="mr-2 h-4 w-4" />
-                Commit to GitHub
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setIsExportModalOpen(true)}>
-                <ExternalLink className="mr-2 h-4 w-4" />
-                Export README
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/templates">
+            <Separator orientation="vertical" className="h-6 mx-1" />
+
+            <Button variant="outline" size="sm" onClick={() => setIsCommitModalOpen(true)} className="border-primary/20 hover:bg-primary/5">
+              <Code2 className="mr-2 h-4 w-4" />
+              Commit
+            </Button>
+            
+            <Button variant="outline" size="sm" onClick={() => setIsExportModalOpen(true)}>
+              <Download className="mr-2 h-4 w-4" />
+              Export
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  Actions
+                  <ChevronRight className="ml-2 h-4 w-4 rotate-90" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>README Actions</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate({ to: '/templates' })}>
                   <Layers className="mr-2 h-4 w-4" />
                   Change Template
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => debouncedSave(markdown, documentId)} disabled={isSaving}>
-                <Save className="mr-2 h-4 w-4" />
-                Save Now
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setIsFreshnessModalOpen(true)}>
+                  <History className="mr-2 h-4 w-4" />
+                  Check Freshness
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleCopy}>
+                  <Copy className="mr-2 h-4 w-4" />
+                  Copy Markdown
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Button size="sm" className="bg-primary hover:bg-primary/90" onClick={() => debouncedSave(markdown, documentId)} disabled={isSaving}>
+              {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+              Save
+            </Button>
+          </div>
+
+          {/* Mobile Actions Dropdown */}
+          <div className="xl:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  Menu
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => debouncedSave(markdown, documentId)} disabled={isSaving}>
+                  {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                  Save Changes
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setIsCommitModalOpen(true)}>
+                  <Code2 className="mr-2 h-4 w-4" />
+                  Commit to GitHub
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setIsExportModalOpen(true)}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Export README
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate({ to: '/templates' })}>
+                  <Layers className="mr-2 h-4 w-4" />
+                  Templates
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {history.length > 0 && (
+                  <DropdownMenuItem onClick={handleUndo}>
+                    <Undo2 className="mr-2 h-4 w-4" />
+                    Undo
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={handleReset} className="text-destructive">
+                  <RefreshCcw className="mr-2 h-4 w-4" />
+                  Reset to Initial
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </header>
 
