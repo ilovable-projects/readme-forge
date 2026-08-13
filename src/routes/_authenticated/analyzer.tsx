@@ -11,7 +11,7 @@ import {
   FileCheck, 
   Zap, 
   GitGraph, 
-  GithubIcon, 
+  Github, 
   RefreshCw, 
   Plus 
 } from "lucide-react";
