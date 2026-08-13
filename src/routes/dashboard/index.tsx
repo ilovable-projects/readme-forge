@@ -265,9 +265,8 @@ function DashboardPage() {
                        </div>
                      </div>
                      <span className="text-xs text-muted-foreground">{doc.date}</span>
-                   </Link>
-                 ))}
-                 ))}
+                    </Link>
+                  ))}
                </CardContent>
              </Card>
 
