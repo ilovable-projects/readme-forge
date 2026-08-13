@@ -11,7 +11,7 @@ import {
   SortAsc,
   Loader2,
   RefreshCw,
-  Github
+  GithubIcon as Github
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
