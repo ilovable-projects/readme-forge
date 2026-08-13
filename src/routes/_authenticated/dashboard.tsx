@@ -14,7 +14,8 @@ import {
   Search,
   LogOut,
   Loader2,
-  Menu
+  Menu,
+  RefreshCw
 } from "lucide-react";
 import { 
   DropdownMenu,
