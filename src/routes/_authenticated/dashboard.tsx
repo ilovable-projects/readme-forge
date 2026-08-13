@@ -15,7 +15,8 @@ import {
   LogOut,
   Loader2,
   Menu,
-  RefreshCw
+  RefreshCw,
+  ArrowRight
 } from "lucide-react";
 import { 
   DropdownMenu,
