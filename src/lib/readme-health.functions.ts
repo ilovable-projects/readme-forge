@@ -3,6 +3,7 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { StructuredAnalysis } from "./github-analyzer.functions";
+import { checkReadmeAccuracy } from "./readme-accuracy.functions";
 
 export interface CategoryResult {
   score: number;
@@ -240,22 +241,25 @@ export const calculateReadmeScore = createServerFn({ method: "POST" })
       .upsert({
         readme_document_id: documentId,
         overall_score,
-        overview_score: categories['overview'].score,
-        features_score: categories['features'].score,
-        installation_score: categories['installation'].score,
-        usage_score: categories['usage'].score,
-        tech_stack_score: categories['tech_stack'].score,
-        project_structure_score: categories['project_structure'].score,
-        testing_score: categories['testing'].score,
-        accuracy_score: categories['accuracy']?.score || 0,
+        overview_score: categories?.['overview']?.score ?? 0,
+        features_score: categories?.['features']?.score ?? 0,
+        installation_score: categories?.['installation']?.score ?? 0,
+        usage_score: categories?.['usage']?.score ?? 0,
+        tech_stack_score: categories?.['tech_stack']?.score ?? 0,
+        project_structure_score: categories?.['project_structure']?.score ?? 0,
+        testing_score: categories?.['testing']?.score ?? 0,
+        accuracy_score: categories?.['accuracy']?.score ?? 0,
         issues: issues as any,
-        metadata: {
-          categories,
-          calculated_at: new Date().toISOString()
-        } as any
       }, { onConflict: 'readme_document_id' });
 
     if (scoreError) console.error("Failed to save score:", scoreError);
+
+    // Trigger Accuracy Check (Async)
+    try {
+      await checkReadmeAccuracy({ data: { documentId, repositoryId, content } });
+    } catch (e) {
+      console.error("Accuracy check failed:", e);
+    }
 
     return result;
   });
