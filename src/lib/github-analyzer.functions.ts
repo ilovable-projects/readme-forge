@@ -173,7 +173,19 @@ export const analyzeRepository = createServerFn({ method: "POST" })
       // 5. Persist to database server-side for security and atomicity
       const { data: repoData, error: repoError } = await supabaseAdmin
         .from('repositories')
-        .insert([{ ...result.repository, user_id: userId }])
+        .insert([{
+          github_url: result.repository.github_url,
+          owner: result.repository.owner,
+          name: result.repository.name,
+          description: result.repository.description,
+          default_branch: result.repository.default_branch,
+          language: result.repository.language,
+          stars: result.repository.stars,
+          forks: result.repository.forks,
+          is_private: result.repository.is_private,
+          metadata: result.repository.metadata,
+          user_id: userId
+        }])
         .select()
         .single();
       
@@ -181,7 +193,18 @@ export const analyzeRepository = createServerFn({ method: "POST" })
       
       const { error: analysisError } = await supabaseAdmin
         .from('repository_analyses')
-        .insert([{ ...result.analysis, repository_id: repoData.id }]);
+        .insert([{
+          repository_id: repoData.id,
+          detected_languages: result.analysis.detected_languages,
+          detected_frameworks: result.analysis.detected_frameworks,
+          detected_dependencies: result.analysis.detected_dependencies,
+          detected_scripts: result.analysis.detected_scripts,
+          project_structure: result.analysis.project_structure,
+          environment_variables: result.analysis.environment_variables,
+          license: result.analysis.license,
+          existing_readme: result.analysis.existing_readme,
+          analysis_data: result.analysis.analysis_data
+        }]);
 
       if (analysisError) throw analysisError;
 
