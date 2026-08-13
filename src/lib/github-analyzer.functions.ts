@@ -119,11 +119,14 @@ export const analyzeRepository = createServerFn({ method: "POST" })
       // Extract safe env var names from .env.example
       const envExamplePath = foundConfigFiles.find(f => f.endsWith(".env.example"));
       if (envExamplePath) {
-        const content = detectedConfigs[envExamplePath];
+        const content = envExamplePath ? detectedConfigs[envExamplePath] : undefined;
         if (content) {
           const lines = content.split("\n");
           technologies.env_vars = lines
-            .map(line => line.split("=")[0].trim())
+            .map(line => {
+              const parts = line.split("=");
+              return parts[0] ? parts[0].trim() : "";
+            })
             .filter(name => name && !name.startsWith("#"));
         }
       }
