@@ -317,25 +317,23 @@ export const analyzeRepository = createServerFn({ method: "POST" })
       // Security: Repository content is treated as untrusted data during analysis.
       /*
       '''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''
+                                              
+                                                  
+                                                  
+                                                  When i add repo url then it will show some token error solve them or tell me how solve if u need anything i will provie u.
 
       For the code present, I get the error below.
 
-      Please think step-by-step in order to resolve it.
-      ```
-      src/lib/github-analyzer.functions.ts(322,51): error TS1435: Unknown keyword or identifier. Did you mean 'for'?
-      src/lib/github-analyzer.functions.ts(322,55): error TS1434: Unexpected keyword or identifier.
-      src/lib/github-analyzer.functions.ts(322,59): error TS1434: Unexpected keyword or identifier.
-      src/lib/github-analyzer.functions.ts(322,75): error TS1005: ';' expected.
-      src/lib/github-analyzer.functions.ts(322,79): error TS1434: Unexpected keyword or identifier.
-      src/lib/github-analyzer.functions.ts(322,83): error TS1434: Unexpected keyword or identifier.
-      src/lib/github-analyzer.functions.ts(322,95): error TS1003: Identifier expected.
-      src/lib/github-analyzer.functions.ts(324,1): error TS1434: Unexpected keyword or identifier.
-      src/lib/github-analyzer.functions.ts(324,8): error TS1434: Unexpected keyword or identifier.
-      src/lib/github-analyzer.functions.ts(324,36): error TS1005: ';' expected.
-      src/lib/github-analyzer.functions.ts(324,39): error TS1434: Unexpected keyword or identifier.
-      src/lib/github-analyzer.functions.ts(325,1): error TS1003: Identifier expected.
-      ```
+      Please think step-by-step in order to resolve
+      {
+        "status": 500,
+        "statusText": "Internal Server Error",
+        "message": "createServerFn must be a thin wrapper. Module scope may contain only imports, erased types, and exported server-function declarations. Move all runtime helper code to an imported module or inside the handler.",
+        "stack": "Error: createServerFn must be a thin wrapper. Module scope may contain only imports, erased types, and exported server-function declarations. Move all runtime helper code to an imported module or inside the handler.\\n    at eval (/dev-server/node_modules/@tanstack/start-client-core/src/createServerFn.ts:212:20)\\n    at async eval (/dev-server/node_modules/@tanstack/start-server-core/src/server-functions-handler.ts:148:18)\\n    at async eval (/dev-server/node_modules/@tanstack/start-server-core/src/server-functions-handler.ts:81:17)\\n    at async handleServerAction (/dev-server/node_modules/@tanstack/start-server-core/src/server-functions-handler.ts:418:10)\",\n  \"has_blank_screen\": true\n}\n```
+
+      It takes too much time in genrating readm file and in all other tasks it was consuming too much time make it faster and accurate. Also done its SEO
       */
+
                                               
                                                   
                                                   

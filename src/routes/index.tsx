@@ -22,8 +22,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     title: "READMEForge | Best AI README Generator for GitHub",
     meta: [
-      { name: "description", content: "Create professional GitHub READMEs in seconds with READMEForge, the #1 AI-powered documentation tool. Automatically analyze your repository and generate accurate, high-quality README.md files." },
-      { name: "keywords", content: "AI README generator, GitHub README tool, automated documentation, README.md creator, developer tools, GitHub repository analyzer" },
+      { name: "description", content: "READMEForge: The ultimate AI README generator. Create professional GitHub documentation in seconds. Analyze your code and generate high-quality README.md files automatically." },
+      { name: "keywords", content: "AI README generator, GitHub README tool, automated documentation, README.md creator, developer tools, GitHub repository analyzer, best README generator, professional README documentation" },
+
       { property: "og:title", content: "READMEForge | Best AI README Generator for GitHub" },
       { property: "og:description", content: "Transform your GitHub repository with professional AI-generated documentation. The ultimate README.md creator for developers." },
       { property: "og:type", content: "website" },
