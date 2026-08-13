@@ -41,8 +41,7 @@ export const analyzeRepository = createServerFn({ method: "POST" })
   .validator((data: unknown) => z.string().url().parse(data))
   .handler(async ({ data, context }) => {
     const userId = context.userId;
-    const repoUrl = data;
-    if (typeof repoUrl !== 'string') throw new Error("URL must be a string");
+    const repoUrl: string = data as string;
 
     const GITHUB_TOKEN = process.env['GITHUB_TOKEN'];
     const octokit = new Octokit({ auth: GITHUB_TOKEN });
