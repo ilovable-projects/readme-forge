@@ -104,6 +104,7 @@ const AI_ACTIONS = [
 
 function EditorPage() {
   const { repositoryId } = useSearch({ from: '/_authenticated/editor' });
+  const navigate = useNavigate();
   const { user } = useAuth();
   const editSectionFn = useServerFn(editReadmeSection);
   const calculateScoreFn = useServerFn(calculateReadmeScore);
