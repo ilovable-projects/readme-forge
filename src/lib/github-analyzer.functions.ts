@@ -266,8 +266,8 @@ export const analyzeRepository = createServerFn({ method: "POST" })
           project_structure: projectStructure,
           environment_variables: structuredAnalysis.envVars.value,
           license: structuredAnalysis.license.value,
-          existing_readme: readmePath ? (detectedConfigs[readmePath] || null) : null,
-          analysis_data: structuredAnalysis as any
+          existing_readme: readmePath ? (detectedConfigs[readmePath]?.substring(0, 50000) || null) : null,
+          analysis_data: JSON.parse(JSON.stringify(structuredAnalysis))
         }
       };
 
