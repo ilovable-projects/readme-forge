@@ -66,7 +66,7 @@ const editorSearchSchema = z.object({
   repositoryId: z.string().optional(),
 });
 
-export const Route = createFileRoute("/editor/")({
+export const Route = createFileRoute("/_authenticated/editor")({
   validateSearch: (search) => editorSearchSchema.parse(search),
   component: EditorPage,
 });
@@ -87,7 +87,7 @@ const AI_ACTIONS = [
 ];
 
 function EditorPage() {
-  const { repositoryId } = useSearch({ from: '/editor/' });
+  const { repositoryId } = useSearch({ from: '/_authenticated/editor' });
   const { user } = useAuth();
   const editSectionFn = useServerFn(editReadmeSection);
   const calculateScoreFn = useServerFn(calculateReadmeScore);

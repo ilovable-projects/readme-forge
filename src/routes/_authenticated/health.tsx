@@ -34,7 +34,7 @@ const healthSearchSchema = z.object({
   repositoryId: z.string().optional(),
 });
 
-export const Route = createFileRoute("/health/")({
+export const Route = createFileRoute("/_authenticated/health")({
   validateSearch: (search) => healthSearchSchema.parse(search),
   component: HealthPage,
 });
@@ -72,7 +72,7 @@ const DEFAULT_ISSUES = [
 ];
 
 function HealthPage() {
-  const { documentId, repositoryId } = useSearch({ from: '/health/' });
+  const { documentId, repositoryId } = useSearch({ from: '/_authenticated/health' });
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(!!documentId || !!repositoryId);

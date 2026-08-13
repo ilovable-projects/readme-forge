@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { 
   LayoutDashboard, 
   Plus, 
@@ -22,7 +22,7 @@ import { useAuth, useRepositories } from "@/hooks/use-data";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 
-export const Route = createFileRoute("/dashboard/")({
+export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
 });
 

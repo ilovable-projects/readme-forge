@@ -124,7 +124,7 @@ function AuthPage() {
               </div>
             </div>
 
-            <TabsContent value="login" className="mt-4">
+            <TabsContent value="login" className="mt-4 space-y-4">
               <Button 
                 className="w-full" 
                 onClick={() => handleEmailAuth('login')}
@@ -132,6 +132,23 @@ function AuthPage() {
               >
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
                 Sign In
+              </Button>
+              <Button
+                variant="link"
+                className="w-full text-xs text-muted-foreground"
+                onClick={async () => {
+                  if (!email) {
+                    toast.error("Please enter your email address first.");
+                    return;
+                  }
+                  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + '/auth/reset-password',
+                  });
+                  if (error) toast.error(error.message);
+                  else toast.success("Password reset email sent!");
+                }}
+              >
+                Forgot password?
               </Button>
             </TabsContent>
             

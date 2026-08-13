@@ -10,24 +10,54 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AnalyzerIndexRouteImport } from './routes/analyzer/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthenticatedAnalyzerRouteImport } from './routes/_authenticated/analyzer'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedEditorRouteImport } from './routes/_authenticated/editor'
+import { Route as AuthenticatedHealthRouteImport } from './routes/_authenticated/health'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedTemplatesRouteImport } from './routes/_authenticated/templates'
 import { Route as AuthIndexRouteImport } from './routes/auth/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
-import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
-import { Route as EditorIndexRouteImport } from './routes/editor/index'
-import { Route as HealthIndexRouteImport } from './routes/health/index'
-import { Route as SettingsIndexRouteImport } from './routes/settings/index'
-import { Route as TemplatesIndexRouteImport } from './routes/templates/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AnalyzerIndexRoute = AnalyzerIndexRouteImport.update({
-  id: '/analyzer/',
-  path: '/analyzer/',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAnalyzerRoute = AuthenticatedAnalyzerRouteImport.update({
+  id: '/analyzer',
+  path: '/analyzer',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEditorRoute = AuthenticatedEditorRouteImport.update({
+  id: '/editor',
+  path: '/editor',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHealthRoute = AuthenticatedHealthRouteImport.update({
+  id: '/health',
+  path: '/health',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTemplatesRoute = AuthenticatedTemplatesRouteImport.update({
+  id: '/templates',
+  path: '/templates',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthIndexRoute = AuthIndexRouteImport.update({
   id: '/auth/',
@@ -39,112 +69,84 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardIndexRoute = DashboardIndexRouteImport.update({
-  id: '/dashboard/',
-  path: '/dashboard/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EditorIndexRoute = EditorIndexRouteImport.update({
-  id: '/editor/',
-  path: '/editor/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HealthIndexRoute = HealthIndexRouteImport.update({
-  id: '/health/',
-  path: '/health/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsIndexRoute = SettingsIndexRouteImport.update({
-  id: '/settings/',
-  path: '/settings/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TemplatesIndexRoute = TemplatesIndexRouteImport.update({
-  id: '/templates/',
-  path: '/templates/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analyzer': typeof AuthenticatedAnalyzerRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/editor': typeof AuthenticatedEditorRoute
+  '/health': typeof AuthenticatedHealthRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/templates': typeof AuthenticatedTemplatesRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/analyzer/': typeof AnalyzerIndexRoute
   '/auth/': typeof AuthIndexRoute
-  '/dashboard/': typeof DashboardIndexRoute
-  '/editor/': typeof EditorIndexRoute
-  '/health/': typeof HealthIndexRoute
-  '/settings/': typeof SettingsIndexRoute
-  '/templates/': typeof TemplatesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analyzer': typeof AuthenticatedAnalyzerRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/editor': typeof AuthenticatedEditorRoute
+  '/health': typeof AuthenticatedHealthRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/templates': typeof AuthenticatedTemplatesRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/analyzer': typeof AnalyzerIndexRoute
   '/auth': typeof AuthIndexRoute
-  '/dashboard': typeof DashboardIndexRoute
-  '/editor': typeof EditorIndexRoute
-  '/health': typeof HealthIndexRoute
-  '/settings': typeof SettingsIndexRoute
-  '/templates': typeof TemplatesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_authenticated/analyzer': typeof AuthenticatedAnalyzerRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/editor': typeof AuthenticatedEditorRoute
+  '/_authenticated/health': typeof AuthenticatedHealthRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/templates': typeof AuthenticatedTemplatesRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/analyzer/': typeof AnalyzerIndexRoute
   '/auth/': typeof AuthIndexRoute
-  '/dashboard/': typeof DashboardIndexRoute
-  '/editor/': typeof EditorIndexRoute
-  '/health/': typeof HealthIndexRoute
-  '/settings/': typeof SettingsIndexRoute
-  '/templates/': typeof TemplatesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/auth/callback'
-    | '/analyzer/'
-    | '/auth/'
-    | '/dashboard/'
-    | '/editor/'
-    | '/health/'
-    | '/settings/'
-    | '/templates/'
-  fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/auth/callback'
     | '/analyzer'
-    | '/auth'
     | '/dashboard'
     | '/editor'
     | '/health'
     | '/settings'
     | '/templates'
+    | '/auth/callback'
+    | '/auth/'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/analyzer'
+    | '/dashboard'
+    | '/editor'
+    | '/health'
+    | '/settings'
+    | '/templates'
+    | '/auth/callback'
+    | '/auth'
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
+    | '/_authenticated/analyzer'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/editor'
+    | '/_authenticated/health'
+    | '/_authenticated/settings'
+    | '/_authenticated/templates'
     | '/auth/callback'
-    | '/analyzer/'
     | '/auth/'
-    | '/dashboard/'
-    | '/editor/'
-    | '/health/'
-    | '/settings/'
-    | '/templates/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthCallbackRoute: typeof AuthCallbackRoute
-  AnalyzerIndexRoute: typeof AnalyzerIndexRoute
   AuthIndexRoute: typeof AuthIndexRoute
-  DashboardIndexRoute: typeof DashboardIndexRoute
-  EditorIndexRoute: typeof EditorIndexRoute
-  HealthIndexRoute: typeof HealthIndexRoute
-  SettingsIndexRoute: typeof SettingsIndexRoute
-  TemplatesIndexRoute: typeof TemplatesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -156,12 +158,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/analyzer/': {
-      id: '/analyzer/'
-      path: '/analyzer'
-      fullPath: '/analyzer/'
-      preLoaderRoute: typeof AnalyzerIndexRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/analyzer': {
+      id: '/_authenticated/analyzer'
+      path: '/analyzer'
+      fullPath: '/analyzer'
+      preLoaderRoute: typeof AuthenticatedAnalyzerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/editor': {
+      id: '/_authenticated/editor'
+      path: '/editor'
+      fullPath: '/editor'
+      preLoaderRoute: typeof AuthenticatedEditorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/health': {
+      id: '/_authenticated/health'
+      path: '/health'
+      fullPath: '/health'
+      preLoaderRoute: typeof AuthenticatedHealthRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/templates': {
+      id: '/_authenticated/templates'
+      path: '/templates'
+      fullPath: '/templates'
+      preLoaderRoute: typeof AuthenticatedTemplatesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/auth/': {
       id: '/auth/'
@@ -177,54 +221,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard/': {
-      id: '/dashboard/'
-      path: '/dashboard'
-      fullPath: '/dashboard/'
-      preLoaderRoute: typeof DashboardIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/editor/': {
-      id: '/editor/'
-      path: '/editor'
-      fullPath: '/editor/'
-      preLoaderRoute: typeof EditorIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/health/': {
-      id: '/health/'
-      path: '/health'
-      fullPath: '/health/'
-      preLoaderRoute: typeof HealthIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings/': {
-      id: '/settings/'
-      path: '/settings'
-      fullPath: '/settings/'
-      preLoaderRoute: typeof SettingsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/templates/': {
-      id: '/templates/'
-      path: '/templates'
-      fullPath: '/templates/'
-      preLoaderRoute: typeof TemplatesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAnalyzerRoute: typeof AuthenticatedAnalyzerRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedEditorRoute: typeof AuthenticatedEditorRoute
+  AuthenticatedHealthRoute: typeof AuthenticatedHealthRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedTemplatesRoute: typeof AuthenticatedTemplatesRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAnalyzerRoute: AuthenticatedAnalyzerRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedEditorRoute: AuthenticatedEditorRoute,
+  AuthenticatedHealthRoute: AuthenticatedHealthRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedTemplatesRoute: AuthenticatedTemplatesRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthCallbackRoute: AuthCallbackRoute,
-  AnalyzerIndexRoute: AnalyzerIndexRoute,
   AuthIndexRoute: AuthIndexRoute,
-  DashboardIndexRoute: DashboardIndexRoute,
-  EditorIndexRoute: EditorIndexRoute,
-  HealthIndexRoute: HealthIndexRoute,
-  SettingsIndexRoute: SettingsIndexRoute,
-  TemplatesIndexRoute: TemplatesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
