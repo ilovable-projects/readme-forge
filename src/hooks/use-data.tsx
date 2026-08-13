@@ -114,7 +114,7 @@ export function useAnalyzeRepository() {
       // 3. Save analysis
       const { error: analysisError } = await supabase
         .from('repository_analyses')
-        .insert([{ ...result.analysis, repository_id: repo.id }]);
+        .insert([{ ...result.analysis, repository_id: repo.id, existing_readme: result.analysis.existing_readme || null }]);
 
       if (analysisError) throw analysisError;
 
