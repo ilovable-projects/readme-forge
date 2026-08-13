@@ -44,11 +44,10 @@ export const analyzeRepository = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const userId = context.userId;
 
+    // Public repositories only: a token is optional (used purely to raise rate limits).
     const GITHUB_TOKEN = process.env['GITHUB_TOKEN'];
-    if (!GITHUB_TOKEN) {
-      throw new Error("Server configuration error: GITHUB_TOKEN is missing.");
-    }
-    const octokit = new Octokit({ auth: GITHUB_TOKEN });
+    const octokit = GITHUB_TOKEN ? new Octokit({ auth: GITHUB_TOKEN }) : new Octokit();
+
 
     const urlString = data as string;
     // Strict sanitization of input URL
