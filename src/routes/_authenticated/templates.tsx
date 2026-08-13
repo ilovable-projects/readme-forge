@@ -7,7 +7,8 @@ import {
   Sparkles,
   Loader2,
   Check,
-  AlertTriangle
+  AlertTriangle,
+  ArrowLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -173,12 +174,19 @@ function TemplatesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="mx-auto max-w-6xl space-y-8">
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight">README Templates</h1>
-            <p className="text-muted-foreground">Select a professional starting point tailored for your project.</p>
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" asChild className="shrink-0">
+              <Link to="/editor" search={{ repositoryId: lastRepositoryId || "" }}>
+                <ArrowLeft className="h-5 w-5" />
+              </Link>
+            </Button>
+            <div className="space-y-1">
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">README Templates</h1>
+              <p className="text-muted-foreground text-xs md:text-sm hidden sm:block">Professional starting points tailored for your project.</p>
+            </div>
           </div>
           <div className="w-full md:w-80">
             <div className="relative">
