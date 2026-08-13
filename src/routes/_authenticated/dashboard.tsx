@@ -22,7 +22,7 @@ import { useAuth, useRepositories } from "@/hooks/use-data";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 
-export const Route = createFileRoute("/_authenticated/dashboard/")({
+export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
 });
 

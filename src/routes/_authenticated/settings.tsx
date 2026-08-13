@@ -29,7 +29,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/settings/")({
+export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
 });
 
