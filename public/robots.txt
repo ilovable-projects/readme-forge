@@ -1,12 +1,9 @@
 User-agent: *
 Allow: /
-Allow: /auth
-Disallow: /dashboard
-Disallow: /analyzer
-Disallow: /editor
-Disallow: /health
-Disallow: /templates
-Disallow: /settings
-Disallow: /api/
+Disallow: /auth/
+Disallow: /dashboard/
+Disallow: /settings/
+Disallow: /editor/
+Disallow: /analyzer/
 
 Sitemap: https://readmeforge.com/sitemap.xml

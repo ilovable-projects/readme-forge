@@ -52,8 +52,8 @@ export const editReadmeSection = createServerFn({ method: "POST" })
     const sanitizedContext = JSON.parse(JSON.stringify(techContext || {}));
 
     
-    // Simulate AI latency
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Removed simulated AI latency for faster performance
+
 
     let newContent = currentContent;
     
