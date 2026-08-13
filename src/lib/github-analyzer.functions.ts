@@ -320,18 +320,7 @@ export const analyzeRepository = createServerFn({ method: "POST" })
                                               
                                                   
                                                   
-                                                  When i add repo url then it will show some token error solve them or tell me how solve if u need anything i will provie u.
-
-      For the code present, I get the error below.
-
-      Please think step-by-step in order to resolve
-      {
-        "status": 500,
-        "statusText": "Internal Server Error",
-        "message": "createServerFn must be a thin wrapper. Module scope may contain only imports, erased types, and exported server-function declarations. Move all runtime helper code to an imported module or inside the handler.",
-        "stack": "Error: createServerFn must be a thin wrapper. Module scope may contain only imports, erased types, and exported server-function declarations. Move all runtime helper code to an imported module or inside the handler.\\n    at eval (/dev-server/node_modules/@tanstack/start-client-core/src/createServerFn.ts:212:20)\\n    at async eval (/dev-server/node_modules/@tanstack/start-server-core/src/server-functions-handler.ts:148:18)\\n    at async eval (/dev-server/node_modules/@tanstack/start-server-core/src/server-functions-handler.ts:81:17)\\n    at async handleServerAction (/dev-server/node_modules/@tanstack/start-server-core/src/server-functions-handler.ts:418:10)\",\n  \"has_blank_screen\": true\n}\n```
-
-      It takes too much time in genrating readm file and in all other tasks it was consuming too much time make it faster and accurate. Also done its SEO
+                                                  Optimize the README preview rendering so Markdown updates feel instantaneous while I edit.
       */
 
                                               

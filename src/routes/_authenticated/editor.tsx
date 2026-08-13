@@ -120,6 +120,7 @@ function EditorPage() {
   const updateWithAiFn = useServerFn(updateReadmeWithAi);
 
   const [markdown, setMarkdown] = useState("");
+  const [deferredMarkdown, setDeferredMarkdown] = useState("");
   const [initialMarkdown, setInitialMarkdown] = useState("");
   const [history, setHistory] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -179,8 +180,10 @@ function EditorPage() {
       if (error) throw error;
       
       if (data) {
-        setMarkdown(data.markdown_content || "");
-        setInitialMarkdown(data.markdown_content || "");
+        const content = data.markdown_content || "";
+        setMarkdown(content);
+        setDeferredMarkdown(content);
+        setInitialMarkdown(content);
         setDocumentId(data.id);
         // Check freshness after loading
         handleCheckFreshness(repositoryId!, data.id);
@@ -247,6 +250,17 @@ function EditorPage() {
     }
   }, [markdown, documentId, debouncedSave, initialMarkdown]);
 
+  const debouncedPreviewUpdate = useCallback(
+    debounce((content: string) => {
+      setDeferredMarkdown(content);
+    }, 100),
+    []
+  );
+
+  useEffect(() => {
+    debouncedPreviewUpdate(markdown);
+  }, [markdown, debouncedPreviewUpdate]);
+
   const handleMarkdownChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMarkdown(e.target.value);
   };
@@ -256,6 +270,7 @@ function EditorPage() {
       const prev = history[history.length - 1];
       if (prev !== undefined) {
         setMarkdown(prev);
+        setDeferredMarkdown(prev);
       }
       setHistory(prevHistory => prevHistory.slice(0, -1));
       toast.info("Changes reverted");
@@ -326,6 +341,7 @@ function EditorPage() {
       ];
 
       setMarkdown(newLines.join('\n'));
+      setDeferredMarkdown(newLines.join('\n'));
       toast.success(`${action.label} applied to ${selectedSection}`);
     } catch (error: any) {
       toast.error("AI action failed: " + error.message);
@@ -339,6 +355,7 @@ function EditorPage() {
     if (initialMarkdown) {
       setHistory(prev => [...prev, markdown]);
       setMarkdown(initialMarkdown);
+      setDeferredMarkdown(initialMarkdown);
       toast.info("Reset to initial version");
     }
   };
@@ -435,6 +452,7 @@ function EditorPage() {
   const applyAiUpdate = () => {
     setHistory(prev => [...prev, markdown]);
     setMarkdown(pendingUpdatedMarkdown);
+    setDeferredMarkdown(pendingUpdatedMarkdown);
     setIsDiffModalOpen(false);
     toast.success("README updated with AI suggestions");
   };
@@ -701,7 +719,7 @@ function EditorPage() {
                                  remarkPlugins={[remarkGfm]} 
                                  rehypePlugins={[rehypeHighlight]}
                                >
-                                 {markdown}
+                                 {deferredMarkdown}
                                </ReactMarkdown>
                             </div>
                          </div>
@@ -735,7 +753,7 @@ function EditorPage() {
                                remarkPlugins={[remarkGfm]} 
                                rehypePlugins={[rehypeHighlight]}
                              >
-                               {markdown}
+                               {deferredMarkdown}
                              </ReactMarkdown>
                           </div>
                        </div>
