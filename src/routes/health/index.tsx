@@ -17,7 +17,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
-export const Route = createFileRoute("/health")({
+export const Route = createFileRoute("/health/")({
   component: HealthPage,
 });
 
