@@ -48,8 +48,8 @@ export const editReadmeSection = createServerFn({ method: "POST" })
         newContent = currentContent.replace(/dont/g, "don't").replace(/wont/g, "won't"); // Simple mock fix
         break;
       case "more_technical":
-        if (techContext?.language?.value) {
-          newContent = `${currentContent}\n\n*Implementation Details: Developed using ${techContext.language.value} architectural patterns.*`;
+        if (techContext?.['language']?.value) {
+          newContent = `${currentContent}\n\n*Implementation Details: Developed using ${techContext['language'].value} architectural patterns.*`;
         }
         break;
       case "beginner_friendly":
