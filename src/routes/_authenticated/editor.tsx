@@ -642,12 +642,6 @@ function EditorPage() {
            </div>
         </aside>
       </div>
-      <ExportModal 
-        isOpen={isExportModalOpen} 
-        onClose={() => setIsExportModalOpen(false)} 
-        onDownload={handleDownload}
-        onCopy={handleCopy}
-      />
       <ExportModal />
       <CommitModal />
       <CommitSuccessModal />
