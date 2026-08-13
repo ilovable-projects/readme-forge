@@ -11,10 +11,13 @@ import {
   Zap,
   Shield,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  AlertOctagon,
+  RefreshCw,
+  Target
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -23,6 +26,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-data";
 import { toast } from "sonner";
+import { checkReadmeAccuracy, fixAccuracyIssue, fixAllAccuracyIssues, type AccuracyIssue } from "@/lib/readme-accuracy.functions";
+import { useServerFn } from "@tanstack/react-start";
 
 const healthSearchSchema = z.object({
   documentId: z.string().optional(),
