@@ -43,8 +43,6 @@ export const fetchUserRepositories = createServerFn({ method: "GET" })
     // In production, use Redis or a database-backed rate limiter
     const octokit = GITHUB_TOKEN ? new Octokit({ auth: GITHUB_TOKEN }) : new Octokit();
 
-    const octokit = new Octokit({ auth: GITHUB_TOKEN });
-
     // For V1, we might only be able to fetch public repos if we don't have the user's specific OAuth token
     // If the user's GitHub username is known, we can fetch their public repos
     const githubIdentity = user.identities?.find(id => id.provider === 'github');
