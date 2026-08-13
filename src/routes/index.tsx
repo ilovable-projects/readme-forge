@@ -96,14 +96,14 @@ function LandingPage() {
         </div>
       </nav>
 
-      <main className="pt-16">
+      <main id="main-content" className="pt-16">
         {/* Hero Section */}
         <section className="relative overflow-hidden py-24 sm:py-32">
           {/* Subtle background glow */}
           <div className="absolute top-1/2 left-1/2 -z-10 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[120px]" />
           
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-4xl text-center">
+            <header className="mx-auto max-w-4xl text-center">
               <Badge variant="outline" className="mb-6 rounded-full border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-semibold tracking-wider text-primary uppercase">
                 <Sparkles className="mr-2 h-3 w-3" />
                 Next-Gen Developer Tools
@@ -119,6 +119,8 @@ function LandingPage() {
                 <div className="relative flex-1">
                   <GitGraph className="absolute top-3 left-4 h-5 w-5 text-muted-foreground" />
                   <Input 
+                    id="repo-url"
+                    aria-label="GitHub Repository URL"
                     placeholder="https://github.com/username/repo" 
                     className="h-12 border-border/50 bg-secondary/30 pl-11 ring-offset-background focus-visible:ring-primary/30"
                     value={url}
@@ -134,6 +136,7 @@ function LandingPage() {
               <p className="mb-16 text-sm text-muted-foreground">
                 Supporting all public GitHub repositories. No access required.
               </p>
+            </header>
 
               {/* Visual Demo Card */}
               <div className="relative mx-auto max-w-5xl rounded-2xl border border-border/40 bg-card/50 p-2 shadow-2xl backdrop-blur-sm sm:p-4">
