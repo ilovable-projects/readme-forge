@@ -172,7 +172,7 @@ export const checkReadmeAccuracy = createServerFn({ method: "POST" })
         suggestions: {
           accuracy_report: result,
           accuracy_calculated_at: new Date().toISOString()
-        } as Json
+        } as unknown as Json
       })
       .eq('readme_document_id', documentId);
 

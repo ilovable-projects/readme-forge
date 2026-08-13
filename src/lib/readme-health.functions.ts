@@ -248,7 +248,7 @@ export const calculateReadmeScore = createServerFn({ method: "POST" })
         tech_stack_score: categories['tech_stack'].score,
         project_structure_score: categories['project_structure'].score,
         testing_score: categories['testing'].score,
-        accuracy_score: categories['accuracy']?.score || 0,
+        accuracy_score: categories?.['accuracy']?.score ?? 0,
         issues: issues as any,
       }, { onConflict: 'readme_document_id' });
 
