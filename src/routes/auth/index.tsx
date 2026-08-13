@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Github, Loader2, Mail } from 'lucide-react';
+import { GithubIcon, Loader2, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const Route = createFileRoute('/auth/')({
@@ -86,7 +86,7 @@ function AuthPage() {
                 className="w-full border-border/50 bg-background/50"
                 onClick={handleGithubLogin}
               >
-                <Github className="mr-2 h-4 w-4" />
+                <GithubIcon className="mr-2 h-4 w-4" />
                 Continue with GitHub
               </Button>
               

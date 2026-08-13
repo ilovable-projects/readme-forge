@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { 
   User, 
   Settings as SettingsIcon, 
-  Github, 
+  GithubIcon, 
   Cpu, 
   Bell, 
   Shield, 
@@ -95,7 +95,7 @@ function SettingsPage() {
               AI Preferences
             </TabsTrigger>
             <TabsTrigger value="integrations" className="flex items-center gap-2">
-              <Github className="h-4 w-4" />
+              <GithubIcon className="h-4 w-4" />
               Integrations
             </TabsTrigger>
             <TabsTrigger value="billing" className="flex items-center gap-2">
@@ -224,7 +224,7 @@ function SettingsPage() {
                       <div className="flex items-center justify-between">
                          <div className="flex items-center gap-4">
                             <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center">
-                               <Github className="h-6 w-6" />
+                               <GithubIcon className="h-6 w-6" />
                             </div>
                             <div>
                                <p className="font-bold">GitHub</p>
