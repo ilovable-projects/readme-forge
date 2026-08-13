@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { 
   Search, 
@@ -16,7 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Link } from "@tanstack/react-router";
+import { useAuth, useCreateRepository } from "@/hooks/use-data";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/analyzer/")({
   component: AnalyzerPage,
@@ -25,20 +26,56 @@ export const Route = createFileRoute("/analyzer/")({
 function AnalyzerPage() {
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [repoUrl, setRepoUrl] = useState("");
+  const { user } = useAuth();
+  const createRepo = useCreateRepository();
+  const navigate = useNavigate();
 
-  const startAnalysis = () => {
+  const startAnalysis = async () => {
+    if (!repoUrl) {
+      toast.error("Please enter a repository URL");
+      return;
+    }
+    
     setAnalyzing(true);
     setProgress(0);
+    
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
-          setAnalyzing(false);
           return 100;
         }
         return prev + 10;
       });
-    }, 500);
+    }, 300);
+
+    // Simulate analysis completion after progress hits 100
+    setTimeout(async () => {
+      try {
+        const parts = repoUrl.replace('https://github.com/', '').split('/');
+        const owner = parts[0];
+        const name = parts[1] || 'repo';
+
+        await createRepo.mutateAsync({
+          github_url: repoUrl,
+          owner,
+          name,
+          description: "AI-powered GitHub README generator and analyzer.",
+          language: "TypeScript",
+          stars: 12,
+          forks: 2,
+          is_private: false,
+          metadata: { analyzed: true }
+        });
+        
+        toast.success("Repository analyzed and saved!");
+        setAnalyzing(false);
+      } catch (error: any) {
+        toast.error("Failed to save repository: " + error.message);
+        setAnalyzing(false);
+      }
+    }, 4000);
   };
 
   return (
@@ -55,6 +92,8 @@ function AnalyzerPage() {
               <Input 
                 placeholder="https://github.com/username/repo" 
                 className="h-12 border-border/50"
+                value={repoUrl}
+                onChange={(e) => setRepoUrl(e.target.value)}
               />
               <Button size="lg" className="h-12" onClick={startAnalysis} disabled={analyzing}>
                 {analyzing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}

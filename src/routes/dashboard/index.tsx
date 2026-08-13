@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { 
   LayoutDashboard, 
   Plus, 
@@ -6,17 +6,21 @@ import {
   Clock, 
   BarChart3, 
   FileText, 
-  ExternalLink,
   ChevronRight,
   Code2,
   Settings as SettingsIcon,
   Layout,
-  Search
+  Search,
+  LogOut,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { useAuth, useRepositories } from "@/hooks/use-data";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/dashboard/")({
   component: DashboardPage,
@@ -56,6 +60,23 @@ const RECENT_REPOS = [
 ];
 
 function DashboardPage() {
+  const { user, loading: authLoading } = useAuth();
+  const { data: repositories, isLoading: reposLoading } = useRepositories();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: '/auth' });
+  };
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-background">
       {/* Sidebar */}
@@ -66,23 +87,29 @@ function DashboardPage() {
           </div>
           <span className="text-lg font-bold tracking-tight">READMEForge</span>
         </div>
-        <nav className="p-4 space-y-2">
-          <Link to="/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium transition-colors">
-            <LayoutDashboard className="h-4 w-4" />
-            Dashboard
-          </Link>
-          <Link to="/analyzer" className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors">
-            <Search className="h-4 w-4" />
-            Analyzer
-          </Link>
-          <Link to="/templates" className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors">
-            <Layout className="h-4 w-4" />
-            Templates
-          </Link>
-          <Link to="/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors">
-            <SettingsIcon className="h-4 w-4" />
-            Settings
-          </Link>
+        <nav className="p-4 space-y-2 flex flex-col h-[calc(100%-4rem)]">
+          <div className="flex-1 space-y-2">
+            <Link to="/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium transition-colors">
+              <LayoutDashboard className="h-4 w-4" />
+              Dashboard
+            </Link>
+            <Link to="/analyzer" className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors">
+              <Search className="h-4 w-4" />
+              Analyzer
+            </Link>
+            <Link to="/templates" className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors">
+              <Layout className="h-4 w-4" />
+              Templates
+            </Link>
+            <Link to="/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors">
+              <SettingsIcon className="h-4 w-4" />
+              Settings
+            </Link>
+          </div>
+          <Button variant="ghost" className="justify-start gap-3 px-3 text-muted-foreground hover:text-rose-400" onClick={handleLogout}>
+            <LogOut className="h-4 w-4" />
+            Log Out
+          </Button>
         </nav>
       </aside>
 
@@ -92,7 +119,7 @@ function DashboardPage() {
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Welcome back, Developer</h1>
+              <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user?.email?.split('@')[0]}</h1>
               <p className="text-muted-foreground">Manage your repository documentation and health scores.</p>
             </div>
             <Button className="rounded-lg shadow-lg shadow-primary/20" asChild>
@@ -111,7 +138,7 @@ function DashboardPage() {
                 <Github className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">12</div>
+                <div className="text-2xl font-bold">{repositories?.length ?? 0}</div>
                 <p className="text-xs text-muted-foreground">+2 from last month</p>
               </CardContent>
             </Card>
@@ -156,7 +183,18 @@ function DashboardPage() {
               <Button variant="ghost" size="sm" className="text-muted-foreground">View all</Button>
             </div>
             <div className="grid gap-4">
-              {RECENT_REPOS.map((repo) => (
+              {reposLoading ? (
+                <div className="flex justify-center p-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : repositories?.length === 0 ? (
+                <div className="text-center p-12 border border-dashed border-border/40 rounded-xl bg-card/20">
+                  <p className="text-muted-foreground">No repositories analyzed yet.</p>
+                  <Button variant="link" asChild>
+                    <Link to="/analyzer">Analyze your first repo →</Link>
+                  </Button>
+                </div>
+              ) : repositories?.map((repo) => (
                 <Card key={repo.id} className="bg-card/30 border-border/40 hover:border-primary/20 transition-all group">
                   <CardContent className="p-4 sm:p-6">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -167,16 +205,16 @@ function DashboardPage() {
                         <div>
                           <div className="flex items-center gap-2">
                             <h3 className="font-bold hover:underline cursor-pointer">{repo.owner} / {repo.name}</h3>
-                            <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-widest">{repo.language}</Badge>
+                            <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-widest">{repo.language || 'Unknown'}</Badge>
                           </div>
                           <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
                              <span className="flex items-center gap-1">
                                <Clock className="h-3 w-3" />
-                               {repo.lastAnalyzed}
+                               {new Date(repo.updated_at).toLocaleDateString()}
                              </span>
                              <span className="flex items-center gap-1">
                                <BarChart3 className="h-3 w-3" />
-                               {repo.stars.toLocaleString()} stars
+                               {repo.stars?.toLocaleString() ?? 0} stars
                              </span>
                           </div>
                         </div>
@@ -185,19 +223,11 @@ function DashboardPage() {
                       <div className="flex items-center gap-8 w-full sm:w-auto justify-between sm:justify-end">
                         <div className="text-right">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm text-muted-foreground">Health</span>
-                            <span className={`text-sm font-bold ${
-                              repo.score > 90 ? 'text-emerald-400' : 
-                              repo.score > 70 ? 'text-amber-400' : 
-                              'text-rose-400'
-                            }`}>{repo.score}%</span>
+                            <span className="text-sm text-muted-foreground">Status</span>
+                            <span className={`text-sm font-bold text-primary`}>Analyzed</span>
                           </div>
                           <div className="h-1.5 w-24 bg-secondary rounded-full overflow-hidden">
-                             <div className={`h-full ${
-                               repo.score > 90 ? 'bg-emerald-400' : 
-                               repo.score > 70 ? 'bg-amber-400' : 
-                               'bg-rose-400'
-                             }`} style={{ width: `${repo.score}%` }} />
+                             <div className={`h-full bg-primary`} style={{ width: `100%` }} />
                           </div>
                         </div>
                         <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity" asChild>
