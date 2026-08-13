@@ -231,7 +231,7 @@ function DashboardPage() {
                           </div>
                         </div>
                         <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity" asChild>
-                          <Link to="/analyzer">
+                          <Link to="/editor" search={{ repositoryId: repo.id }}>
                             <ChevronRight className="h-4 w-4" />
                           </Link>
                         </Button>
