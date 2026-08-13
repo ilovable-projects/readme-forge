@@ -279,7 +279,7 @@ function EditorPage() {
                     <div className="h-full bg-emerald-500" style={{ width: '87%' }} />
                  </div>
                  <Button variant="link" size="sm" className="mt-2 h-auto p-0 text-primary" asChild>
-                    <Link to="/health" search={{ documentId: documentId || undefined }}>View full report →</Link>
+                    <Link to="/health" search={{ documentId: documentId || "" }}>View full report →</Link>
                  </Button>
               </div>
 
