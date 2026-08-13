@@ -12,11 +12,12 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/analyzer")({
+export const Route = createFileRoute("/analyzer/")({
   component: AnalyzerPage,
 });
 
