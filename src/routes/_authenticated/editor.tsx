@@ -72,6 +72,11 @@ import { updateReadmeWithAi } from "@/lib/readme-update.functions";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const editorSearchSchema = z.object({
   repositoryId: z.string().optional(),
