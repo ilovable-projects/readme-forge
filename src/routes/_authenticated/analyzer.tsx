@@ -145,7 +145,17 @@ function AnalyzerPage() {
 
     } catch (error: any) {
       clearInterval(interval);
-      toast.error(error.message || "Failed to analyze repository");
+      
+      let errorMessage = error.message || "Failed to analyze repository";
+      
+      // Specifically handle GitHub token errors or access issues
+      if (errorMessage.toLowerCase().includes("token") || errorMessage.toLowerCase().includes("credential") || error.status === 401) {
+        errorMessage = "GitHub API access error. This usually happens when the server's GITHUB_TOKEN is invalid or expired. Please contact support or try again later.";
+      } else if (error.status === 403) {
+        errorMessage = "GitHub API rate limit exceeded. Please try again in a few minutes.";
+      }
+
+      toast.error(errorMessage);
       setAnalyzing(false);
       setProgress(0);
     }
