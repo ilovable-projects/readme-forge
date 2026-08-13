@@ -15,7 +15,11 @@ import {
   Loader2,
   Undo2,
   ArrowUpRight,
-  Check
+  Check,
+  ShieldCheck,
+  Code2,
+  Zap,
+  GithubIcon as Github
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -75,7 +79,6 @@ function EditorPage() {
   const [history, setHistory] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(!!repositoryId);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [documentId, setDocumentId] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<any>(null);
@@ -111,8 +114,8 @@ function EditorPage() {
       if (error) throw error;
       
       if (data) {
-        setMarkdown(data.markdown_content);
-        setInitialMarkdown(data.markdown_content);
+        setMarkdown(data.markdown_content || "");
+        setInitialMarkdown(data.markdown_content || "");
         setDocumentId(data.id);
       }
     } catch (error: any) {
@@ -190,7 +193,7 @@ function EditorPage() {
     if (startIndex === -1) return null;
 
     for (let i = startIndex + 1; i < lines.length; i++) {
-      if (lines[i].startsWith('## ')) {
+      if (lines[i] && lines[i].startsWith('## ')) {
         endIndex = i;
         break;
       }
@@ -546,7 +549,3 @@ function StatusBadge({ label, exists }: { label: string, exists: boolean }) {
     </div>
   );
 }
-
-const ShieldCheck = ({ className }: { className?: string }) => <div className={className}><CheckCircle2 /></div>;
-const Code2 = ({ className }: { className?: string }) => <div className={className}><FileText /></div>;
-const Zap = ({ className }: { className?: string }) => <div className={className}><Sparkles /></div>;
