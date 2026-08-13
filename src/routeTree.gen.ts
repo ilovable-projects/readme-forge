@@ -10,33 +10,115 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AnalyzerIndexRouteImport } from './routes/analyzer/index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as EditorIndexRouteImport } from './routes/editor/index'
+import { Route as HealthIndexRouteImport } from './routes/health/index'
+import { Route as SettingsIndexRouteImport } from './routes/settings/index'
+import { Route as TemplatesIndexRouteImport } from './routes/templates/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnalyzerIndexRoute = AnalyzerIndexRouteImport.update({
+  id: '/analyzer/',
+  path: '/analyzer/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/dashboard/',
+  path: '/dashboard/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EditorIndexRoute = EditorIndexRouteImport.update({
+  id: '/editor/',
+  path: '/editor/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HealthIndexRoute = HealthIndexRouteImport.update({
+  id: '/health/',
+  path: '/health/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TemplatesIndexRoute = TemplatesIndexRouteImport.update({
+  id: '/templates/',
+  path: '/templates/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analyzer/': typeof AnalyzerIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
+  '/editor/': typeof EditorIndexRoute
+  '/health/': typeof HealthIndexRoute
+  '/settings/': typeof SettingsIndexRoute
+  '/templates/': typeof TemplatesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analyzer': typeof AnalyzerIndexRoute
+  '/dashboard': typeof DashboardIndexRoute
+  '/editor': typeof EditorIndexRoute
+  '/health': typeof HealthIndexRoute
+  '/settings': typeof SettingsIndexRoute
+  '/templates': typeof TemplatesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/analyzer/': typeof AnalyzerIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
+  '/editor/': typeof EditorIndexRoute
+  '/health/': typeof HealthIndexRoute
+  '/settings/': typeof SettingsIndexRoute
+  '/templates/': typeof TemplatesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/analyzer/'
+    | '/dashboard/'
+    | '/editor/'
+    | '/health/'
+    | '/settings/'
+    | '/templates/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/analyzer'
+    | '/dashboard'
+    | '/editor'
+    | '/health'
+    | '/settings'
+    | '/templates'
+  id:
+    | '__root__'
+    | '/'
+    | '/analyzer/'
+    | '/dashboard/'
+    | '/editor/'
+    | '/health/'
+    | '/settings/'
+    | '/templates/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnalyzerIndexRoute: typeof AnalyzerIndexRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
+  EditorIndexRoute: typeof EditorIndexRoute
+  HealthIndexRoute: typeof HealthIndexRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
+  TemplatesIndexRoute: typeof TemplatesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +130,59 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/analyzer/': {
+      id: '/analyzer/'
+      path: '/analyzer'
+      fullPath: '/analyzer/'
+      preLoaderRoute: typeof AnalyzerIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/editor/': {
+      id: '/editor/'
+      path: '/editor'
+      fullPath: '/editor/'
+      preLoaderRoute: typeof EditorIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/health/': {
+      id: '/health/'
+      path: '/health'
+      fullPath: '/health/'
+      preLoaderRoute: typeof HealthIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/': {
+      id: '/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/templates/': {
+      id: '/templates/'
+      path: '/templates'
+      fullPath: '/templates/'
+      preLoaderRoute: typeof TemplatesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnalyzerIndexRoute: AnalyzerIndexRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
+  EditorIndexRoute: EditorIndexRoute,
+  HealthIndexRoute: HealthIndexRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
+  TemplatesIndexRoute: TemplatesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
