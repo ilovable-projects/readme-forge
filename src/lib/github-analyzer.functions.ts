@@ -4,6 +4,34 @@ import { Octokit } from "octokit";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+export type Confidence = 'verified' | 'likely' | 'unknown';
+
+export interface AnalysisEntry<T> {
+  value: T;
+  confidence: Confidence;
+  source?: string;
+}
+
+export interface StructuredAnalysis {
+  language: AnalysisEntry<string | null>;
+  frameworks: AnalysisEntry<string[]>;
+  packageManager: AnalysisEntry<string | null>;
+  commands: {
+    development: AnalysisEntry<string | null>;
+    build: AnalysisEntry<string | null>;
+    test: AnalysisEntry<string | null>;
+    start: AnalysisEntry<string | null>;
+  };
+  envVars: AnalysisEntry<string[]>;
+  license: AnalysisEntry<string | null>;
+  documentationStatus: {
+    readme: boolean;
+    contributing: boolean;
+    license: boolean;
+  };
+  fileCount: number;
+}
+
 const githubUrlSchema = z.string().url().refine((url) => {
   return url.startsWith("https://github.com/") && url.split("/").filter(Boolean).length >= 3;
 }, "Invalid GitHub repository URL");
@@ -94,46 +122,107 @@ export const analyzeRepository = createServerFn({ method: "POST" })
         }
       }
 
-      // 4. Extract Technologies & Metadata
-      const technologies = {
-        languages: repository.language ? [repository.language] : [],
-        frameworks: [] as string[],
-        dependencies: {} as Record<string, string>,
-        scripts: {} as Record<string, string>,
-        env_vars: [] as string[],
-        license: repository.license?.name || null,
+      // 4. Extract Technologies & Metadata (Normalized Structured Analysis)
+      const structuredAnalysis: StructuredAnalysis = {
+        language: { 
+          value: repository.language || null, 
+          confidence: repository.language ? 'verified' : 'unknown',
+          source: 'GitHub Metadata'
+        },
+        frameworks: { value: [], confidence: 'unknown' },
+        packageManager: { value: null, confidence: 'unknown' },
+        commands: {
+          development: { value: null, confidence: 'unknown' },
+          build: { value: null, confidence: 'unknown' },
+          test: { value: null, confidence: 'unknown' },
+          start: { value: null, confidence: 'unknown' },
+        },
+        envVars: { value: [], confidence: 'unknown' },
+        license: { 
+          value: repository.license?.name || null, 
+          confidence: repository.license ? 'verified' : 'unknown',
+          source: 'GitHub Metadata'
+        },
+        documentationStatus: {
+          readme: files.some(f => f.toLowerCase() === 'readme.md'),
+          contributing: files.some(f => f.toLowerCase() === 'contributing.md'),
+          license: !!repository.license || files.some(f => f.toLowerCase() === 'license'),
+        },
+        fileCount: files.length,
       };
 
-      // Simple parsing of package.json if present
+      const techContext = {
+        dependencies: {} as Record<string, string>,
+        scripts: {} as Record<string, string>,
+      };
+
+      // Detect Package Manager
+      if (files.includes('package-lock.json')) {
+        structuredAnalysis.packageManager = { value: 'npm', confidence: 'verified', source: 'package-lock.json' };
+      } else if (files.includes('yarn.lock')) {
+        structuredAnalysis.packageManager = { value: 'yarn', confidence: 'verified', source: 'yarn.lock' };
+      } else if (files.includes('pnpm-lock.yaml')) {
+        structuredAnalysis.packageManager = { value: 'pnpm', confidence: 'verified', source: 'pnpm-lock.yaml' };
+      } else if (files.includes('bun.lockb')) {
+        structuredAnalysis.packageManager = { value: 'bun', confidence: 'verified', source: 'bun.lockb' };
+      }
+
+      // Parse package.json
       const packageJsonPath = foundConfigFiles.find(f => f.endsWith("package.json"));
       if (packageJsonPath && detectedConfigs[packageJsonPath]) {
         try {
           const pkg = JSON.parse(detectedConfigs[packageJsonPath]);
-          technologies.dependencies = { ...pkg.dependencies, ...pkg.devDependencies };
-          technologies.scripts = pkg.scripts || {};
+          techContext.dependencies = { ...pkg.dependencies, ...pkg.devDependencies };
+          techContext.scripts = pkg.scripts || {};
           
-          if (technologies.dependencies["react"]) technologies.frameworks.push("React");
-          if (technologies.dependencies["next"]) technologies.frameworks.push("Next.js");
-          if (technologies.dependencies["vue"]) technologies.frameworks.push("Vue");
-          if (technologies.dependencies["@tailwindcss/postcss"] || technologies.dependencies["tailwindcss"]) technologies.frameworks.push("Tailwind CSS");
+          // Framework detection
+          const frameworks: string[] = [];
+          if (techContext.dependencies["react"]) frameworks.push("React");
+          if (techContext.dependencies["next"]) frameworks.push("Next.js");
+          if (techContext.dependencies["vue"]) frameworks.push("Vue");
+          if (techContext.dependencies["svelte"]) frameworks.push("Svelte");
+          if (techContext.dependencies["tailwindcss"]) frameworks.push("Tailwind CSS");
+          
+          if (frameworks.length > 0) {
+            structuredAnalysis.frameworks = { value: frameworks, confidence: 'verified', source: 'package.json' };
+          }
+
+          // Command detection
+          const pm = structuredAnalysis.packageManager.value || 'npm';
+          if (techContext.scripts['dev']) {
+            structuredAnalysis.commands.development = { value: `${pm} run dev`, confidence: 'verified', source: 'package.json' };
+          }
+          if (techContext.scripts['build']) {
+            structuredAnalysis.commands.build = { value: `${pm} run build`, confidence: 'verified', source: 'package.json' };
+          }
+          if (techContext.scripts['test']) {
+            structuredAnalysis.commands.test = { value: `${pm} test`, confidence: 'verified', source: 'package.json' };
+          }
+          if (techContext.scripts['start']) {
+            structuredAnalysis.commands.start = { value: `${pm} start`, confidence: 'verified', source: 'package.json' };
+          }
         } catch (e) {
           console.error("Failed to parse package.json");
         }
       }
 
-      // Extract safe env var names from .env.example
+      // Extract safe env var names
       const envExamplePath = foundConfigFiles.find(f => f.endsWith(".env.example"));
-      if (envExamplePath) {
-        const content = envExamplePath ? detectedConfigs[envExamplePath] : undefined;
-        if (content) {
-          const lines = content.split("\n");
-          technologies.env_vars = lines
-            .map(line => {
-              const parts = line.split("=");
-              return parts[0] ? parts[0].trim() : "";
-            })
-            .filter(name => name && !name.startsWith("#"));
+      if (envExamplePath && detectedConfigs[envExamplePath]) {
+        const lines = detectedConfigs[envExamplePath].split("\n");
+        const vars = lines
+          .map(line => {
+            const parts = line.split("=");
+            return parts[0] ? parts[0].trim() : "";
+          })
+          .filter(name => name && !name.startsWith("#"));
+        
+        if (vars.length > 0) {
+          structuredAnalysis.envVars = { value: vars, confidence: 'verified', source: '.env.example' };
         }
+      } else if (files.includes('.env')) {
+        // We don't read .env but we know they are likely used
+        structuredAnalysis.envVars.confidence = 'likely';
       }
 
       const readmePath = foundConfigFiles.find(f => f.toLowerCase().endsWith("readme.md"));
@@ -155,22 +244,19 @@ export const analyzeRepository = createServerFn({ method: "POST" })
           }
         },
         analysis: {
-          detected_languages: technologies.languages,
-          detected_frameworks: technologies.frameworks,
-          detected_dependencies: technologies.dependencies,
-          detected_scripts: technologies.scripts,
+          detected_languages: structuredAnalysis.language.value ? [structuredAnalysis.language.value] : [],
+          detected_frameworks: structuredAnalysis.frameworks.value,
+          detected_dependencies: techContext.dependencies,
+          detected_scripts: techContext.scripts,
           project_structure: projectStructure,
-          environment_variables: technologies.env_vars,
-          license: technologies.license,
+          environment_variables: structuredAnalysis.envVars.value,
+          license: structuredAnalysis.license.value,
           existing_readme: readmePath ? (detectedConfigs[readmePath] || null) : null,
-          analysis_data: {
-            file_count: files.length,
-            full_tree: files.slice(0, 100),
-          }
+          analysis_data: structuredAnalysis as any
         }
       };
 
-      // 5. Persist to database server-side for security and atomicity
+      // 5. Persist to database
       const { data: repoData, error: repoError } = await supabaseAdmin
         .from('repositories')
         .insert([{
