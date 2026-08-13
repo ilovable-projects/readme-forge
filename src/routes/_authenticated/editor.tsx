@@ -341,6 +341,7 @@ function EditorPage() {
       ];
 
       setMarkdown(newLines.join('\n'));
+      setDeferredMarkdown(newLines.join('\n'));
       toast.success(`${action.label} applied to ${selectedSection}`);
     } catch (error: any) {
       toast.error("AI action failed: " + error.message);
@@ -354,6 +355,7 @@ function EditorPage() {
     if (initialMarkdown) {
       setHistory(prev => [...prev, markdown]);
       setMarkdown(initialMarkdown);
+      setDeferredMarkdown(initialMarkdown);
       toast.info("Reset to initial version");
     }
   };
@@ -450,6 +452,7 @@ function EditorPage() {
   const applyAiUpdate = () => {
     setHistory(prev => [...prev, markdown]);
     setMarkdown(pendingUpdatedMarkdown);
+    setDeferredMarkdown(pendingUpdatedMarkdown);
     setIsDiffModalOpen(false);
     toast.success("README updated with AI suggestions");
   };
@@ -716,7 +719,7 @@ function EditorPage() {
                                  remarkPlugins={[remarkGfm]} 
                                  rehypePlugins={[rehypeHighlight]}
                                >
-                                 {markdown}
+                                 {deferredMarkdown}
                                </ReactMarkdown>
                             </div>
                          </div>
@@ -750,7 +753,7 @@ function EditorPage() {
                                remarkPlugins={[remarkGfm]} 
                                rehypePlugins={[rehypeHighlight]}
                              >
-                               {markdown}
+                               {deferredMarkdown}
                              </ReactMarkdown>
                           </div>
                        </div>
