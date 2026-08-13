@@ -91,7 +91,7 @@ function AnalyzerPage() {
       setTimeout(() => {
         setAnalyzing(false);
         // We'll redirect to the editor with the new repo ID
-        navigate({ to: '/_authenticated/editor', search: { repositoryId: repo.id } });
+        navigate({ to: '/editor', search: { repositoryId: repo.id } });
       }, 1000);
 
     } catch (error: any) {

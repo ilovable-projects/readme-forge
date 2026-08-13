@@ -85,7 +85,7 @@ function LandingPage() {
                   />
                 </div>
                 <Button size="lg" className="h-12 rounded-lg px-8 shadow-xl shadow-primary/20 transition-all hover:translate-y-[-2px] hover:shadow-2xl hover:shadow-primary/30" asChild>
-                  <Link to="/_authenticated/analyzer">
+                  <Link to="/analyzer">
                     Analyze Repository
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>

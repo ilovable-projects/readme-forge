@@ -23,7 +23,7 @@ function AuthPage() {
     // Redirect if already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate({ to: '/_authenticated/dashboard' });
+        navigate({ to: '/dashboard' });
       }
     });
   }, [navigate]);
@@ -41,7 +41,7 @@ function AuthPage() {
         toast.success('Check your email to confirm your account!');
       } else {
         toast.success('Successfully logged in!');
-        navigate({ to: '/_authenticated/dashboard' });
+        navigate({ to: '/dashboard' });
       }
     } catch (error: any) {
       toast.error(error.message);

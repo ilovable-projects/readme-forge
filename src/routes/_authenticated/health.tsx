@@ -72,7 +72,7 @@ const DEFAULT_ISSUES = [
 ];
 
 function HealthPage() {
-  const { documentId, repositoryId } = useSearch({ from: '/_authenticated/health/' });
+  const { documentId, repositoryId } = useSearch({ from: '/_authenticated/health' });
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(!!documentId || !!repositoryId);
@@ -248,7 +248,7 @@ function HealthPage() {
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-4">
              <Button variant="ghost" size="sm" asChild>
-                <Link to="/_authenticated/editor" search={{ repositoryId: repositoryId || score?.repository_id || "" }}>
+                <Link to="/editor" search={{ repositoryId: repositoryId || score?.repository_id || "" }}>
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to Editor
                 </Link>

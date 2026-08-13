@@ -87,7 +87,7 @@ const AI_ACTIONS = [
 ];
 
 function EditorPage() {
-  const { repositoryId } = useSearch({ from: '/_authenticated/editor/' });
+  const { repositoryId } = useSearch({ from: '/_authenticated/editor' });
   const { user } = useAuth();
   const editSectionFn = useServerFn(editReadmeSection);
   const calculateScoreFn = useServerFn(calculateReadmeScore);
@@ -335,7 +335,7 @@ function EditorPage() {
       <header className="flex h-14 items-center justify-between border-b border-border/40 bg-card/30 px-6 backdrop-blur-md">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/_authenticated/dashboard">
+            <Link to="/dashboard">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Link>
@@ -368,7 +368,7 @@ function EditorPage() {
             Export
           </Button>
           <Button variant="outline" size="sm" asChild>
-            <Link to="/_authenticated/templates">
+            <Link to="/templates">
               <Layers className="mr-2 h-4 w-4" />
               Change Template
             </Link>
@@ -570,7 +570,7 @@ function EditorPage() {
                     )}
                  </div>
                  <Button variant="link" size="sm" className="mt-4 h-auto p-0 text-primary" asChild>
-                    <Link to="/_authenticated/health" search={{ repositoryId: repositoryId || "" }}>View health report →</Link>
+                    <Link to="/health" search={{ repositoryId: repositoryId || "" }}>View health report →</Link>
                  </Button>
               </div>
 
