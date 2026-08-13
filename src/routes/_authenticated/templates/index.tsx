@@ -102,7 +102,7 @@ function TemplatesPage() {
       if (error) throw error;
 
       toast.success(`Template "${template.name}" applied!`);
-      navigate({ to: '/editor', search: { repositoryId: lastRepositoryId } });
+      navigate({ to: '/_authenticated/editor', search: { repositoryId: lastRepositoryId } });
     } catch (error: any) {
       toast.error("Failed to apply template: " + error.message);
     } finally {
@@ -163,7 +163,7 @@ function TemplatesPage() {
         .eq('repository_id', lastRepositoryId);
 
       toast.success(`Template "${confirmTemplate.name}" applied successfully!`);
-      navigate({ to: '/editor', search: { repositoryId: lastRepositoryId } });
+      navigate({ to: '/_authenticated/editor', search: { repositoryId: lastRepositoryId } });
     } catch (error: any) {
       toast.error("Failed to apply template: " + error.message);
     } finally {

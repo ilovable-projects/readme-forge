@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { 
   LayoutDashboard, 
   Plus, 
@@ -89,19 +89,19 @@ function DashboardPage() {
         </div>
         <nav className="p-4 space-y-2 flex flex-col h-[calc(100%-4rem)]">
           <div className="flex-1 space-y-2">
-            <Link to="/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium transition-colors">
+            <Link to="/_authenticated/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium transition-colors">
               <LayoutDashboard className="h-4 w-4" />
               Dashboard
             </Link>
-            <Link to="/analyzer" className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors">
+            <Link to="/_authenticated/analyzer" className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors">
               <Search className="h-4 w-4" />
               Analyzer
             </Link>
-            <Link to="/templates" className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors">
+            <Link to="/_authenticated/templates" className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors">
               <Layout className="h-4 w-4" />
               Templates
             </Link>
-            <Link to="/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors">
+            <Link to="/_authenticated/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors">
               <SettingsIcon className="h-4 w-4" />
               Settings
             </Link>
@@ -123,7 +123,7 @@ function DashboardPage() {
               <p className="text-muted-foreground">Manage your repository documentation and health scores.</p>
             </div>
             <Button className="rounded-lg shadow-lg shadow-primary/20" asChild>
-              <Link to="/analyzer">
+              <Link to="/_authenticated/analyzer">
                 <Plus className="mr-2 h-4 w-4" />
                 Analyze New Repository
               </Link>
@@ -191,7 +191,7 @@ function DashboardPage() {
                 <div className="text-center p-12 border border-dashed border-border/40 rounded-xl bg-card/20">
                   <p className="text-muted-foreground">No repositories analyzed yet.</p>
                   <Button variant="link" asChild>
-                    <Link to="/analyzer">Analyze your first repo →</Link>
+                    <Link to="/_authenticated/analyzer">Analyze your first repo →</Link>
                   </Button>
                 </div>
               ) : repositories?.map((repo) => (
@@ -231,7 +231,7 @@ function DashboardPage() {
                           </div>
                         </div>
                         <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity" asChild>
-                          <Link to="/editor" search={{ repositoryId: repo.id }}>
+                          <Link to="/_authenticated/editor" search={{ repositoryId: repo.id }}>
                             <ChevronRight className="h-4 w-4" />
                           </Link>
                         </Button>
