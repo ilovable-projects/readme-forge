@@ -78,14 +78,16 @@ function TemplatesPage() {
         .limit(1)
         .maybeSingle();
 
+      // 2. Prepare content - always reorganize sections based on template
       const badgeStr = template.default_badges.map(b => `![Badge](https://img.shields.io/badge/${b}-template-blue)`).join(' ');
-      const content = `# Project Name\n\n${badgeStr}\n\n${template.section_order.map(s => `## ${s}\n\nPlaceholder for ${s.toLowerCase()}...`).join('\n\n')}`;
-
+      
       if (existingDoc && existingDoc.markdown_content) {
         setConfirmTemplate(template);
         setIsApplying(false);
         return;
       }
+
+      const content = `# Project Name\n\n${badgeStr}\n\n${template.section_order.map(s => `## ${s}\n\nPlaceholder for ${s.toLowerCase()}...`).join('\n\n')}`;
 
       const { error } = await supabase
         .from('readme_documents')
@@ -113,13 +115,48 @@ function TemplatesPage() {
     
     setIsApplying(true);
     try {
+      const { data: existingDoc } = await supabase
+        .from('readme_documents')
+        .select('markdown_content')
+        .eq('repository_id', lastRepositoryId)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const existingContent = existingDoc?.markdown_content || "";
       const badgeStr = confirmTemplate.default_badges.map(b => `![Badge](https://img.shields.io/badge/${b}-template-blue)`).join(' ');
-      const content = `# Project Name\n\n${badgeStr}\n\n${confirmTemplate.section_order.map(s => `## ${s}\n\nPlaceholder for ${s.toLowerCase()}...`).join('\n\n')}`;
+      
+      // Smart Reorganization: Preserve existing sections if they match the new template
+      const lines = existingContent.split('\n');
+      const sectionsMap = new Map<string, string>();
+      let currentSection = "";
+      let currentText: string[] = [];
+
+      lines.forEach(line => {
+        if (line.trim().startsWith('## ')) {
+          if (currentSection) {
+            sectionsMap.set(currentSection.toLowerCase(), currentText.join('\n').trim());
+          }
+          currentSection = line.replace('## ', '').trim();
+          currentText = [];
+        } else if (currentSection) {
+          currentText.push(line);
+        }
+      });
+      if (currentSection) {
+        sectionsMap.set(currentSection.toLowerCase(), currentText.join('\n').trim());
+      }
+
+      // Reconstruct content using new template order but existing section text where available
+      const newContent = `# Project Name\n\n${badgeStr}\n\n${confirmTemplate.section_order.map(s => {
+        const existingText = sectionsMap.get(s.toLowerCase());
+        return `## ${s}\n\n${existingText || `Placeholder for ${s.toLowerCase()}...`}`;
+      }).join('\n\n')}`;
 
       await supabase
         .from('readme_documents')
         .update({
-          markdown_content: content,
+          markdown_content: newContent,
           template: confirmTemplate.id,
           updated_at: new Date().toISOString()
         })
