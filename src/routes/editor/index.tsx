@@ -45,6 +45,7 @@ import debounce from "lodash.debounce";
 import { useServerFn } from "@tanstack/react-start";
 import { editReadmeSection } from "@/lib/readme-editor.functions";
 import { calculateReadmeScore } from "@/lib/readme-health.functions";
+import { calculateReadmeScore } from "@/lib/readme-health.functions";
 
 const editorSearchSchema = z.object({
   repositoryId: z.string().optional(),
@@ -74,6 +75,7 @@ function EditorPage() {
   const { repositoryId } = useSearch({ from: '/editor/' });
   const { user } = useAuth();
   const editSectionFn = useServerFn(editReadmeSection);
+  const calculateScoreFn = useServerFn(calculateReadmeScore);
   const calculateScoreFn = useServerFn(calculateReadmeScore);
 
   const [markdown, setMarkdown] = useState("");
@@ -134,11 +136,12 @@ function EditorPage() {
       
       setIsSaving(true);
       try {
-        if (docId) {
+        let currentDocId = docId;
+        if (currentDocId) {
           await supabase
             .from('readme_documents')
             .update({ markdown_content: content, updated_at: new Date().toISOString() })
-            .eq('id', docId);
+            .eq('id', currentDocId);
         } else {
           const { data } = await supabase
             .from('readme_documents')
@@ -150,15 +153,29 @@ function EditorPage() {
             }])
             .select()
             .single();
-          if (data) setDocumentId(data.id);
+          if (data) {
+            currentDocId = data.id;
+            setDocumentId(data.id);
+          }
+        }
+
+        // Trigger health score recalculation
+        if (currentDocId) {
+          await calculateScoreFn({
+            data: {
+              documentId: currentDocId,
+              repositoryId: repositoryId,
+              content: content
+            }
+          });
         }
       } catch (e) {
-        console.error("Autosave failed", e);
+        console.error("Autosave/Health score failed", e);
       } finally {
         setIsSaving(false);
       }
     }, 2000),
-    [user, repositoryId]
+    [user, repositoryId, calculateScoreFn]
   );
 
   useEffect(() => {
