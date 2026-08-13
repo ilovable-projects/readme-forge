@@ -42,6 +42,7 @@ export const analyzeRepository = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const userId = context.userId;
     const urlString = data as string;
+    if (!urlString) throw new Error("URL is required");
 
     const GITHUB_TOKEN = process.env['GITHUB_TOKEN'];
     const octokit = new Octokit({ auth: GITHUB_TOKEN });
