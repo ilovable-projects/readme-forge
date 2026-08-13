@@ -38,16 +38,20 @@ const githubUrlSchema = z.string().url().refine((url) => {
 
 export const analyzeRepository = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data) => githubUrlSchema.parse(data))
-  .handler(async ({ data: repoUrl, context }) => {
+  .validator((data: unknown) => {
+    return z.string().url().parse(data);
+  })
+  .handler(async ({ data, context }) => {
     const userId = context.userId;
 
     const GITHUB_TOKEN = process.env['GITHUB_TOKEN'];
     const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
-    const parts = repoUrl.replace("https://github.com/", "").split("/").filter(Boolean);
-    const owner = parts[0];
-    const repo = parts[1];
+    const urlString = data as string;
+    const cleanUrl = urlString.split('?')[0]!.split('#')[0]!.replace(/\/$/, "");
+    const parts = cleanUrl.replace("https://github.com/", "").split("/").filter(Boolean);
+    const owner = parts[0] as string;
+    const repo = parts[1] as string;
 
     if (!owner || !repo) {
       throw new Error("Invalid GitHub repository URL format.");
@@ -112,6 +116,9 @@ export const analyzeRepository = createServerFn({ method: "POST" })
             owner,
             repo,
             path: file,
+            headers: {
+              'X-Content-Type-Options': 'nosniff'
+            }
           });
 
           if ("content" in content) {
@@ -229,7 +236,7 @@ export const analyzeRepository = createServerFn({ method: "POST" })
 
       const result = {
         repository: {
-          github_url: repoUrl,
+          github_url: urlString,
           owner: repository.owner.login,
           name: repository.name,
           description: repository.description,
@@ -260,10 +267,10 @@ export const analyzeRepository = createServerFn({ method: "POST" })
       const { data: repoData, error: repoError } = await supabaseAdmin
         .from('repositories')
         .insert([{
-          github_url: result.repository.github_url,
+          github_url: `https://github.com/${owner}/${repo}`,
           owner: result.repository.owner,
           name: result.repository.name,
-          description: result.repository.description,
+          description: result.repository.description?.substring(0, 1000) || null,
           default_branch: result.repository.default_branch,
           language: result.repository.language,
           stars: result.repository.stars,

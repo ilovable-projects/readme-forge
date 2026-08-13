@@ -13,8 +13,20 @@ const updateReadmeSchema = z.object({
 export const updateReadmeWithAi = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data) => updateReadmeSchema.parse(data))
-  .handler(async ({ data }) => {
-    const { currentContent, differences } = data;
+  .handler(async ({ data, context }) => {
+    const { currentContent, differences, documentId } = data;
+    const userId = context.userId;
+
+    // Verify ownership
+    const { data: docOwner } = await supabaseAdmin
+      .from('readme_documents')
+      .select('user_id')
+      .eq('id', documentId)
+      .single();
+
+    if (!docOwner || docOwner.user_id !== userId) {
+      throw new Error("Unauthorized");
+    }
     
     // Simulate AI processing
     await new Promise(resolve => setTimeout(resolve, 2000));
