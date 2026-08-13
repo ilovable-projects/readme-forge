@@ -39,7 +39,9 @@ const githubUrlSchema = z.string().url().refine((url) => {
 export const analyzeRepository = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data: unknown) => {
-    return githubUrlSchema.parse(data);
+    // Additional security: limit URL length to 200 chars
+    const url = z.string().max(200).parse(data);
+    return githubUrlSchema.parse(url);
   })
   .handler(async ({ data, context }) => {
     const userId = context.userId;

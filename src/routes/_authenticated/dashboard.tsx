@@ -35,6 +35,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
+  head: () => ({
+    title: "Dashboard | READMEForge",
+    meta: [
+      { name: "description", content: "Manage your GitHub repository documentation and track your README health scores." },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: DashboardPage,
 });
 

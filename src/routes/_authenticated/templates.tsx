@@ -31,6 +31,13 @@ import { useAuth } from "@/hooks/use-data";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/templates")({
+  head: () => ({
+    title: "README Templates | READMEForge",
+    meta: [
+      { name: "description", content: "Choose from professional README templates tailored for Open Source, SaaS, CLI tools, and more." },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: TemplatesPage,
 });
 

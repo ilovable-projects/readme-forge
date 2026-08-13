@@ -35,6 +35,13 @@ const analyzerSearchSchema = z.object({
 
 export const Route = createFileRoute("/_authenticated/analyzer")({
   validateSearch: (search) => analyzerSearchSchema.parse(search),
+  head: () => ({
+    title: "Repository Analyzer | READMEForge",
+    meta: [
+      { name: "description", content: "Deep scan your GitHub repository to detect technologies, frameworks, and project structure for accurate README generation." },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: AnalyzerPage,
 });
 

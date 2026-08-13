@@ -33,7 +33,12 @@ const accuracyRequestSchema = z.object({
 
 export const checkReadmeAccuracy = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data) => accuracyRequestSchema.parse(data))
+  .validator((data) => {
+    const schema = accuracyRequestSchema.extend({
+      content: z.string().max(100000),
+    });
+    return schema.parse(data);
+  })
   .handler(async ({ data, context }) => {
     const { documentId, repositoryId, content } = data;
     const userId = context.userId;

@@ -84,6 +84,13 @@ const editorSearchSchema = z.object({
 
 export const Route = createFileRoute("/_authenticated/editor")({
   validateSearch: (search) => editorSearchSchema.parse(search),
+  head: () => ({
+    title: "README Editor | READMEForge",
+    meta: [
+      { name: "description", content: "Edit your generated README with AI-powered suggestions and real-time GitHub-style preview." },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: EditorPage,
 });
 

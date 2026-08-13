@@ -1,14 +1,12 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
 User-agent: *
 Allow: /
+Allow: /auth
+Disallow: /dashboard
+Disallow: /analyzer
+Disallow: /editor
+Disallow: /health
+Disallow: /templates
+Disallow: /settings
+Disallow: /api/
+
+Sitemap: https://readmeforge.com/sitemap.xml

@@ -20,11 +20,17 @@ import {
 
 export const Route = createFileRoute("/")({
   head: () => ({
-    title: "READMEForge | Turn Any GitHub Repository Into a Professional README",
+    title: "READMEForge | Best AI README Generator for GitHub",
     meta: [
-      { name: "description", content: "AI-powered GitHub README generator and analyzer. Analyze your repository, generate accurate documentation, and keep your README in sync with your code." },
-      { property: "og:title", content: "READMEForge | AI-Powered README Generator" },
-      { property: "og:description", content: "Professional GitHub READMEs generated from your actual repository contents." },
+      { name: "description", content: "Create professional GitHub READMEs in seconds with READMEForge, the #1 AI-powered documentation tool. Automatically analyze your repository and generate accurate, high-quality README.md files." },
+      { name: "keywords", content: "AI README generator, GitHub README tool, automated documentation, README.md creator, developer tools, GitHub repository analyzer" },
+      { property: "og:title", content: "READMEForge | Best AI README Generator for GitHub" },
+      { property: "og:description", content: "Transform your GitHub repository with professional AI-generated documentation. The ultimate README.md creator for developers." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "robots", content: "index, follow" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "canonical", content: "https://readmeforge.com/" }
     ],
   }),
   component: LandingPage,
@@ -50,6 +56,21 @@ function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
+      <script type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "READMEForge",
+          "operatingSystem": "Web",
+          "applicationCategory": "DeveloperApplication",
+          "description": "AI-powered GitHub README generator and analyzer. Turn any repository into professional documentation.",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          }
+        })}
+      </script>
       {/* Navigation */}
       <nav className="fixed top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">

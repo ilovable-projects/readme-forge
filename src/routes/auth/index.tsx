@@ -10,6 +10,12 @@ import { GitGraph, Loader2, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const Route = createFileRoute('/auth/')({
+  head: () => ({
+    title: "Login | READMEForge",
+    meta: [
+      { name: "description", content: "Sign in to READMEForge to manage your GitHub repository documentation." },
+    ],
+  }),
   component: AuthPage,
 });
 
