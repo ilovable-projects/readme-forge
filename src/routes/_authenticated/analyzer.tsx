@@ -13,7 +13,8 @@ import {
   GitGraph, 
   Code2 as Github, 
   RefreshCw, 
-  Plus 
+  Plus,
+  GitBranch
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -146,7 +147,7 @@ function AnalyzerPage() {
 
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold flex items-center gap-2">
-            <Github className="h-5 w-5" />
+            <GitBranch className="h-5 w-5" />
             Import from GitHub
           </h2>
           <Button 
