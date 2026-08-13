@@ -156,12 +156,12 @@ function DashboardPage() {
             </Card>
             <Card className="bg-card/50 border-border/40">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-sm font-medium">READMEs Created</CardTitle>
+                <CardTitle className="text-sm font-medium">Drafts</CardTitle>
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">48</div>
-                <p className="text-xs text-muted-foreground">8 drafted this week</p>
+                <div className="text-2xl font-bold">--</div>
+                <p className="text-xs text-muted-foreground">Ready to generate</p>
               </CardContent>
             </Card>
             <Card className="bg-card/50 border-border/40">
@@ -247,25 +247,24 @@ function DashboardPage() {
           <div className="grid gap-6 md:grid-cols-2">
              <Card className="bg-card/50 border-border/40">
                <CardHeader>
-                 <CardTitle className="text-lg">Recent Documents</CardTitle>
-                 <CardDescription>Recently generated README files.</CardDescription>
+                 <CardTitle className="text-lg">Detected Technologies</CardTitle>
+                 <CardDescription>Most common frameworks in your stack.</CardDescription>
                </CardHeader>
                <CardContent className="space-y-4">
                  {[
-                   { name: "README.md", repo: "react-query-auth", date: "2h ago" },
-                   { name: "CONTRIBUTING.md", repo: "shadcn-ui", date: "1d ago" },
-                   { name: "INSTALL.md", repo: "readme-forge", date: "3d ago" }
-                 ].map((doc, i) => (
-                   <Link key={i} to="/editor" className="flex items-center justify-between p-3 rounded-lg hover:bg-secondary/30 transition-colors group cursor-pointer">
-                     <div className="flex items-center gap-3">
-                       <FileText className="h-4 w-4 text-primary" />
-                       <div>
-                         <p className="text-sm font-medium">{doc.name}</p>
-                         <p className="text-xs text-muted-foreground">{doc.repo}</p>
-                       </div>
+                   { name: "React", count: 8, color: "bg-blue-500" },
+                   { name: "TypeScript", count: 12, color: "bg-sky-500" },
+                   { name: "Node.js", count: 5, color: "bg-emerald-500" }
+                 ].map((tech, i) => (
+                   <div key={i} className="space-y-1">
+                     <div className="flex justify-between text-xs">
+                       <span className="font-medium">{tech.name}</span>
+                       <span className="text-muted-foreground">{tech.count} repos</span>
                      </div>
-                     <span className="text-xs text-muted-foreground">{doc.date}</span>
-                    </Link>
+                     <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                       <div className={`h-full ${tech.color}`} style={{ width: `${(tech.count / 15) * 100}%` }} />
+                     </div>
+                   </div>
                   ))}
                </CardContent>
              </Card>

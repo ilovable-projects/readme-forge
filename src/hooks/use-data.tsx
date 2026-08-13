@@ -1,6 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { analyzeRepository } from "@/lib/github-analyzer.functions";
 import { Session, User } from "@supabase/supabase-js";
 
 export function useAuth() {
@@ -81,6 +83,25 @@ export function useCreateRepository() {
       
       if (error) throw error;
       return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['repositories', user?.id] });
+    },
+  });
+}
+
+export function useAnalyzeRepository() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const analyzeFn = useServerFn(analyzeRepository);
+
+  return useMutation({
+    mutationFn: async (githubUrl: string) => {
+      if (!user) throw new Error("Not authenticated");
+      
+      // The server function now handles analysis AND persistence
+      const repo = await analyzeFn({ data: githubUrl });
+      return repo;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['repositories', user?.id] });

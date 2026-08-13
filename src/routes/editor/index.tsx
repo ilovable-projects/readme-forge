@@ -52,7 +52,9 @@ function EditorPage() {
   const [markdown, setMarkdown] = useState(MOCK_MARKDOWN);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(!!repositoryId);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [documentId, setDocumentId] = useState<string | null>(null);
+  const [analysis, setAnalysis] = useState<any>(null);
 
   useEffect(() => {
     if (repositoryId && user) {
@@ -63,6 +65,15 @@ function EditorPage() {
   const loadDocument = async () => {
     setIsLoading(true);
     try {
+      // Load analysis first to have context
+      const { data: analysisData } = await supabase
+        .from('repository_analyses')
+        .select('*')
+        .eq('repository_id', repositoryId!)
+        .maybeSingle();
+      
+      if (analysisData) setAnalysis(analysisData);
+
       const { data, error } = await supabase
         .from('readme_documents')
         .select('*')
@@ -76,11 +87,55 @@ function EditorPage() {
       if (data) {
         setMarkdown(data.markdown_content);
         setDocumentId(data.id);
+      } else if (analysisData) {
+        // If no document exists, suggest generating one
+        setMarkdown(`# ${analysisData.repository_id}\n\nAnalyzing your repository... click "Generate with AI" to create your first README.`);
       }
     } catch (error: any) {
       toast.error("Failed to load document: " + error.message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGenerate = async () => {
+    if (!analysis) {
+      toast.error("No repository analysis found. Please re-analyze the repository.");
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      // For V1, we create a structured template based on analysis data
+      // This will be replaced by a real AI call in the next iteration
+      const techStack = [...(analysis.detected_frameworks || []), ...(analysis.detected_languages || [])].join(", ");
+      const scripts = Object.keys(analysis.detected_scripts || {}).join(", ");
+      
+      let content = `# ${analysis.repository_id || 'Project'}\n\n`;
+      content += `## Overview\nA modern project built with ${techStack}.\n\n`;
+      
+      if (analysis.detected_frameworks?.length) {
+        content += `## Tech Stack\n${analysis.detected_frameworks.map((f: string) => `- ${f}`).join('\n')}\n\n`;
+      }
+
+      if (scripts) {
+        content += `## Available Scripts\nIn the project directory, you can run:\n\n${Object.keys(analysis.detected_scripts).map(s => `### \`npm run ${s}\`\n${analysis.detected_scripts[s]}`).join('\n\n')}\n\n`;
+      }
+
+      if (analysis.environment_variables?.length) {
+        content += `## Environment Variables\nTo run this project, you will need to add the following environment variables to your .env file:\n\n${analysis.environment_variables.map((v: string) => `- \`${v}\``).join('\n')}\n\n`;
+      }
+
+      if (analysis.license) {
+        content += `## License\nThis project is licensed under the ${analysis.license} License.\n`;
+      }
+
+      setMarkdown(content);
+      toast.success("README generated based on repository analysis!");
+    } catch (error: any) {
+      toast.error("Generation failed: " + error.message);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -199,9 +254,15 @@ function EditorPage() {
                <div>
                   <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">AI Actions</h4>
                   <div className="space-y-2">
-                    <Button variant="outline" size="sm" className="w-full justify-start text-xs border-primary/20 bg-primary/5 text-primary">
-                      <Sparkles className="mr-2 h-3 w-3" />
-                      Improve with AI
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full justify-start text-xs border-primary/20 bg-primary/5 text-primary"
+                      onClick={handleGenerate}
+                      disabled={isGenerating}
+                    >
+                      {isGenerating ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <Sparkles className="mr-2 h-3 w-3" />}
+                      Generate with AI
                     </Button>
                     <Button variant="outline" size="sm" className="w-full justify-start text-xs">
                       <RefreshCcw className="mr-2 h-3 w-3" />
@@ -270,16 +331,27 @@ function EditorPage() {
         <aside className="w-64 border-l border-border/40 bg-card/20 hidden xl:block">
            <div className="p-4 space-y-6">
               <div>
-                 <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">README Health</h3>
-                 <div className="flex items-end gap-2 mb-2">
-                    <span className="text-3xl font-bold">87</span>
-                    <span className="text-sm text-muted-foreground mb-1">/100</span>
+                 <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">Analysis Context</h3>
+                 <div className="space-y-4">
+                    {analysis?.detected_frameworks?.length > 0 && (
+                      <div>
+                        <p className="text-[10px] uppercase text-muted-foreground mb-1">Frameworks</p>
+                        <div className="flex flex-wrap gap-1">
+                          {analysis.detected_frameworks.map((f: string) => (
+                            <Badge key={f} variant="secondary" className="text-[9px]">{f}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {analysis?.license && (
+                      <div>
+                        <p className="text-[10px] uppercase text-muted-foreground mb-1">License</p>
+                        <Badge variant="outline" className="text-[9px]">{analysis.license}</Badge>
+                      </div>
+                    )}
                  </div>
-                 <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500" style={{ width: '87%' }} />
-                 </div>
-                 <Button variant="link" size="sm" className="mt-2 h-auto p-0 text-primary" asChild>
-                    <Link to="/health" search={{ documentId: documentId || "" }}>View full report →</Link>
+                 <Button variant="link" size="sm" className="mt-4 h-auto p-0 text-primary" asChild>
+                    <Link to="/health" search={{ repositoryId: repositoryId || "" }}>View health report →</Link>
                  </Button>
               </div>
 
