@@ -169,14 +169,14 @@ function AnalyzerPage() {
                   <GitGraph className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input 
                     placeholder="https://github.com/username/repo" 
-                    className="h-14 pl-10 border-border/50 text-lg bg-background/50 focus:bg-background"
+                    className="h-12 md:h-14 pl-10 border-border/50 text-base md:text-lg bg-background/50 focus:bg-background"
                     value={repoUrl}
                     onChange={(e) => setRepoUrl(e.target.value)}
                     disabled={analyzing}
                     onKeyDown={(e) => e.key === 'Enter' && startAnalysis()}
                   />
                 </div>
-                <Button size="lg" className="h-14 px-8 text-lg font-bold transition-all hover:scale-[1.02] active:scale-[0.98]" onClick={startAnalysis} disabled={analyzing}>
+                <Button size="lg" className="h-12 md:h-14 px-8 text-base md:text-lg font-bold transition-all hover:scale-[1.02] active:scale-[0.98]" onClick={startAnalysis} disabled={analyzing}>
                   {analyzing ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Search className="mr-2 h-5 w-5" />}
                   {analyzing ? "Analyzing..." : "Analyze Now"}
                 </Button>
@@ -212,7 +212,7 @@ function AnalyzerPage() {
 
         {analyzing && (
           <Card className="border-primary/20 bg-primary/5 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
-            <div className="p-8 space-y-6">
+            <div className="p-4 md:p-8 space-y-6">
               <div className="flex justify-between items-end">
                 <div className="space-y-1">
                   <h3 className="text-xl font-bold flex items-center gap-2">

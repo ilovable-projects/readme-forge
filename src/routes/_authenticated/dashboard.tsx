@@ -204,7 +204,9 @@ function DashboardPage() {
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h3 className="font-bold hover:underline cursor-pointer">{repo.owner} / {repo.name}</h3>
+                            <h3 className="font-bold hover:text-primary transition-colors cursor-pointer" onClick={() => navigate({ to: '/editor', search: { repositoryId: repo.id } })}>
+                              {repo.owner} / {repo.name}
+                            </h3>
                             <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-widest">{repo.language || 'Unknown'}</Badge>
                           </div>
                           <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
@@ -230,7 +232,7 @@ function DashboardPage() {
                              <div className={`h-full bg-primary`} style={{ width: `100%` }} />
                           </div>
                         </div>
-                        <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity" asChild>
+                        <Button variant="ghost" size="icon" className="opacity-0 lg:group-hover:opacity-100 transition-opacity" asChild>
                           <Link to="/editor" search={{ repositoryId: repo.id }}>
                             <ChevronRight className="h-4 w-4" />
                           </Link>
