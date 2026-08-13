@@ -42,6 +42,8 @@ import { useAuth } from "@/hooks/use-data";
 import { toast } from "sonner";
 import { z } from "zod";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
 import debounce from "lodash.debounce";
 import { useServerFn } from "@tanstack/react-start";
 import { editReadmeSection } from "@/lib/readme-editor.functions";
