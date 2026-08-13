@@ -11,7 +11,7 @@ export const analyzeRepository = createServerFn({ method: "POST" })
   .inputValidator((data) => githubUrlSchema.parse(data))
   .handler(async ({ data: repoUrl, context }) => {
     // Check auth
-    if (!context.auth?.user?.id) {
+    if (!context || !context.auth?.user?.id) {
       throw new Error("Unauthorized");
     }
     const userId = context.auth.user.id;
@@ -173,21 +173,21 @@ export const analyzeRepository = createServerFn({ method: "POST" })
       };
 
       // 5. Persist to database server-side for security and atomicity
-      const { data: repo, error: repoError } = await supabaseAdmin
+      const { data: repoData, error: repoError } = await supabaseAdmin
         .from('repositories')
         .insert([{ ...result.repository, user_id: userId }])
         .select()
         .single();
       
-      if (repoError) throw repoError;
-
+      if (repoError || !repoData) throw repoError || new Error("Failed to create repository");
+      
       const { error: analysisError } = await supabaseAdmin
         .from('repository_analyses')
-        .insert([{ ...result.analysis, repository_id: repo.id }]);
+        .insert([{ ...result.analysis, repository_id: repoData.id }]);
 
       if (analysisError) throw analysisError;
 
-      return repo;
+      return repoData;
     } catch (error: any) {
       if (error.status === 404) {
         throw new Error("Repository not found or is private.");
