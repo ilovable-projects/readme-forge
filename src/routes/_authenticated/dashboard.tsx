@@ -185,7 +185,7 @@ function DashboardPage() {
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Welcome back, {profile?.full_name || user?.email?.split('@')[0]}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Welcome back, {profile?.display_name || user?.email?.split('@')[0]}</h1>
               <p className="text-muted-foreground">Manage your repository documentation and health scores.</p>
             </div>
             <Button className="rounded-lg shadow-lg shadow-primary/20" asChild>
