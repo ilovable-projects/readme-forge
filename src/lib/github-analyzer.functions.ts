@@ -118,12 +118,14 @@ export const analyzeRepository = createServerFn({ method: "POST" })
 
       // Extract safe env var names from .env.example
       const envExamplePath = foundConfigFiles.find(f => f.endsWith(".env.example"));
-      if (envExamplePath && detectedConfigs[envExamplePath]) {
+      if (envExamplePath) {
         const content = detectedConfigs[envExamplePath];
-        const lines = content.split("\n");
-        technologies.env_vars = lines
-          .map(line => line.split("=")[0].trim())
-          .filter(name => name && !name.startsWith("#"));
+        if (content) {
+          const lines = content.split("\n");
+          technologies.env_vars = lines
+            .map(line => line.split("=")[0].trim())
+            .filter(name => name && !name.startsWith("#"));
+        }
       }
 
       const readmePath = foundConfigFiles.find(f => f.toLowerCase().endsWith("readme.md"));
