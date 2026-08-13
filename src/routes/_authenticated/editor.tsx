@@ -24,7 +24,11 @@ import {
   ExternalLink,
   ClipboardCheck,
   FileCode,
-  ArrowRight
+  ArrowRight,
+  Github,
+  GitBranch,
+  FileBox,
+  MessageSquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -61,6 +65,10 @@ import debounce from "lodash.debounce";
 import { useServerFn } from "@tanstack/react-start";
 import { editReadmeSection } from "@/lib/readme-editor.functions";
 import { calculateReadmeScore } from "@/lib/readme-health.functions";
+import { commitReadmeToGithub } from "@/lib/github-commit.functions";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 const editorSearchSchema = z.object({
   repositoryId: z.string().optional(),
@@ -91,6 +99,7 @@ function EditorPage() {
   const { user } = useAuth();
   const editSectionFn = useServerFn(editReadmeSection);
   const calculateScoreFn = useServerFn(calculateReadmeScore);
+  const commitToGithubFn = useServerFn(commitReadmeToGithub);
 
   const [markdown, setMarkdown] = useState("");
   const [initialMarkdown, setInitialMarkdown] = useState("");
@@ -102,6 +111,15 @@ function EditorPage() {
   const [analysis, setAnalysis] = useState<any>(null);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isCommitModalOpen, setIsCommitModalOpen] = useState(false);
+  const [isCommitSuccessOpen, setIsCommitSuccessOpen] = useState(false);
+  const [commitData, setCommitData] = useState({
+    message: "docs: improve README",
+    path: "README.md",
+    branch: "",
+  });
+  const [commitResult, setCommitResult] = useState<any>(null);
+  const [isCommitting, setIsCommitting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Load document and analysis
@@ -120,7 +138,13 @@ function EditorPage() {
         .eq('repository_id', repositoryId!)
         .maybeSingle();
       
-      if (analysisData) setAnalysis(analysisData);
+      if (analysisData) {
+        setAnalysis(analysisData);
+        setCommitData(prev => ({
+          ...prev,
+          branch: analysisData.repository?.default_branch || 'main'
+        }));
+      }
 
       const { data, error } = await supabase
         .from('readme_documents')
@@ -321,6 +345,34 @@ function EditorPage() {
     }
   };
 
+  const handleCommit = async () => {
+    if (!analysis?.repository || !markdown) return;
+    
+    setIsCommitting(true);
+    try {
+      const result = await commitToGithubFn({
+        data: {
+          repositoryId: repositoryId!,
+          owner: analysis.repository.owner,
+          repo: analysis.repository.name,
+          branch: commitData.branch,
+          path: commitData.path,
+          content: markdown,
+          message: commitData.message,
+        }
+      });
+      
+      setCommitResult(result);
+      setIsCommitModalOpen(false);
+      setIsCommitSuccessOpen(true);
+      toast.success("Committed to GitHub successfully!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to commit to GitHub");
+    } finally {
+      setIsCommitting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
@@ -362,6 +414,10 @@ function EditorPage() {
           <Button variant="outline" size="sm" onClick={handleReset}>
             <RefreshCcw className="mr-2 h-4 w-4" />
             Reset
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setIsCommitModalOpen(true)} className="border-primary/20 hover:bg-primary/5">
+            <Github className="mr-2 h-4 w-4" />
+            Commit to GitHub
           </Button>
           <Button variant="outline" size="sm" onClick={() => setIsExportModalOpen(true)}>
             <ExternalLink className="mr-2 h-4 w-4" />
@@ -593,8 +649,180 @@ function EditorPage() {
         onDownload={handleDownload}
         onCopy={handleCopy}
       />
+      <ExportModal />
+      <CommitModal />
+      <CommitSuccessModal />
     </div>
   );
+
+  function ExportModal() {
+    return (
+      <Dialog open={isExportModalOpen} onOpenChange={setIsExportModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Export README</DialogTitle>
+            <DialogDescription>
+              Choose how you want to export your generated README.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex flex-col gap-2">
+              <Button onClick={handleCopy} variant="outline" className="w-full justify-start">
+                <Copy className="mr-2 h-4 w-4" />
+                Copy Markdown Text
+              </Button>
+              <Button onClick={handleDownload} variant="outline" className="w-full justify-start">
+                <Download className="mr-2 h-4 w-4" />
+                Download README.md
+              </Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsExportModalOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  function CommitModal() {
+    return (
+      <Dialog open={isCommitModalOpen} onOpenChange={setIsCommitModalOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Github className="h-5 w-5" />
+              Commit to GitHub
+            </DialogTitle>
+            <DialogDescription>
+              Ready to push your changes? This will create a commit directly to your repository.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Repository</Label>
+                <div className="flex items-center gap-2 text-sm font-medium bg-secondary/30 p-2 rounded border border-border/40">
+                  <GitGraph className="h-4 w-4 text-primary" />
+                  {analysis?.repository?.owner}/{analysis?.repository?.name}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="branch" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Branch</Label>
+                <div className="relative">
+                  <GitBranch className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Input 
+                    id="branch"
+                    value={commitData.branch}
+                    onChange={(e) => setCommitData({...commitData, branch: e.target.value})}
+                    className="pl-8 h-9 text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="path" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">File Path</Label>
+              <div className="relative">
+                <FileBox className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input 
+                  id="path"
+                  value={commitData.path}
+                  onChange={(e) => setCommitData({...commitData, path: e.target.value})}
+                  className="pl-8 h-9 text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="message" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Commit Message</Label>
+              <div className="relative">
+                <MessageSquare className="absolute left-2.5 top-3 h-3.5 w-3.5 text-muted-foreground" />
+                <Textarea 
+                  id="message"
+                  value={commitData.message}
+                  onChange={(e) => setCommitData({...commitData, message: e.target.value})}
+                  className="pl-8 min-h-[80px] text-sm py-2"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Preview</Label>
+              <div className="max-h-[150px] overflow-y-auto bg-muted/30 p-3 rounded text-[10px] font-mono whitespace-pre-wrap border border-border/20">
+                {markdown.slice(0, 500)}{markdown.length > 500 ? '...' : ''}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsCommitModalOpen(false)}>Cancel</Button>
+            <Button 
+              onClick={handleCommit} 
+              disabled={isCommitting || !commitData.branch || !commitData.path || !commitData.message}
+              className="bg-primary hover:bg-primary/90"
+            >
+              {isCommitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Committing...
+                </>
+              ) : (
+                <>
+                  <Check className="mr-2 h-4 w-4" />
+                  Confirm Commit
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  function CommitSuccessModal() {
+    return (
+      <Dialog open={isCommitSuccessOpen} onOpenChange={setIsCommitSuccessOpen}>
+        <DialogContent className="sm:max-w-md">
+          <div className="flex flex-col items-center justify-center pt-4 pb-2">
+            <div className="h-16 w-16 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle2 className="h-10 w-10 text-emerald-500" />
+            </div>
+            <DialogTitle className="text-2xl font-bold">Commit successful</DialogTitle>
+          </div>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-3">
+              <div className="flex justify-between items-center text-sm p-3 rounded bg-secondary/30 border border-border/40">
+                <span className="text-muted-foreground">Repository</span>
+                <span className="font-medium">{commitResult?.repository}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm p-3 rounded bg-secondary/30 border border-border/40">
+                <span className="text-muted-foreground">Branch</span>
+                <span className="font-medium font-mono">{commitResult?.branch}</span>
+              </div>
+              <div className="flex flex-col gap-1 p-3 rounded bg-secondary/30 border border-border/40">
+                <span className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Commit Message</span>
+                <span className="text-sm italic">"{commitResult?.message}"</span>
+              </div>
+            </div>
+
+            <Button asChild className="w-full mt-4" variant="outline">
+              <a href={commitResult?.html_url} target="_blank" rel="noopener noreferrer">
+                View on GitHub
+                <ArrowUpRight className="ml-2 h-4 w-4" />
+              </a>
+            </Button>
+          </div>
+          
+          <DialogFooter>
+            <Button className="w-full" onClick={() => setIsCommitSuccessOpen(false)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 }
 
 function AnalysisItem({ label, value, confidence }: { label: string, value: string | null, confidence: 'verified' | 'likely' | 'unknown' }) {
