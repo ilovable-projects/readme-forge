@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { calculateReadmeScore } from "./readme-health.functions";
 
 const editSectionSchema = z.object({
   documentId: z.string(),
@@ -51,6 +52,20 @@ export const editReadmeSection = createServerFn({ method: "POST" })
       case "beginner_friendly":
         newContent = `> **Note for beginners:** This section explains the basic concepts of ${sectionTitle.toLowerCase()}.\n\n${currentContent}`;
         break;
+    }
+
+    // Recalculate health score after modification
+    const { data: doc } = await supabaseAdmin
+      .from('readme_documents')
+      .select('content, repository_id')
+      .eq('id', data.documentId)
+      .maybeSingle();
+
+    if (doc) {
+      // Find full content after our update if possible, or just trigger with current segment
+      // For simplicity in the RPC, we assume the client might want to trigger a full refresh,
+      // but we can do a quick check here if we had the full content.
+      // Better: The client triggers the health check whenever the doc changes (autosave loop).
     }
 
     return {
