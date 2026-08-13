@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { 
   LayoutDashboard, 
   Plus, 
-  Github, 
+  GithubIcon, 
   Clock, 
   BarChart3, 
   FileText, 
@@ -135,7 +135,7 @@ function DashboardPage() {
             <Card className="bg-card/50 border-border/40">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                 <CardTitle className="text-sm font-medium">Analyzed Repos</CardTitle>
-                <Github className="h-4 w-4 text-muted-foreground" />
+                <GithubIcon className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{repositories?.length ?? 0}</div>
@@ -200,7 +200,7 @@ function DashboardPage() {
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                       <div className="flex items-start gap-4">
                         <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center">
-                          <Github className="h-5 w-5" />
+                          <GithubIcon className="h-5 w-5" />
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
