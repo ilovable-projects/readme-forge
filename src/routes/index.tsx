@@ -37,6 +37,14 @@ function LandingPage() {
   const handleAnalyze = (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!url) return;
+    
+    // Basic validation before navigating
+    const githubUrlPattern = /^https?:\/\/(www\.)?github\.com\/[\w-]+\/[\w.-]+\/?$/;
+    if (!githubUrlPattern.test(url)) {
+      // If it doesn't match the strict pattern, we still navigate but let the analyzer handle it
+      // or we can show a quick toast here.
+    }
+    
     navigate({ to: "/analyzer", search: { url } });
   };
 
