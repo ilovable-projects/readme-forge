@@ -234,7 +234,7 @@ export const analyzeRepository = createServerFn({ method: "POST" })
 
       const result = {
         repository: {
-          github_url: repoUrl,
+          github_url: urlString,
           owner: repository.owner.login,
           name: repository.name,
           description: repository.description,
