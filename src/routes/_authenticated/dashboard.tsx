@@ -154,7 +154,7 @@ function DashboardPage() {
 
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 h-full w-64 border-r border-border/40 bg-card/30 backdrop-blur-xl hidden lg:block">
-        <Link to="/dashboard" className="flex h-16 items-center gap-2 px-6 border-b border-border/40 hover:bg-secondary/20 transition-colors">
+        <Link to="/" className="flex h-16 items-center gap-2 px-6 border-b border-border/40 hover:bg-secondary/20 transition-colors" aria-label="READMEForge Home">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
             <Code2 className="h-5 w-5 text-primary-foreground" />
           </div>
