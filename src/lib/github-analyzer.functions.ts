@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { Octokit } from "octokit";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const githubUrlSchema = z.string().url().refine((url) => {
   return url.startsWith("https://github.com/") && url.split("/").filter(Boolean).length >= 3;
@@ -8,7 +9,13 @@ const githubUrlSchema = z.string().url().refine((url) => {
 
 export const analyzeRepository = createServerFn({ method: "POST" })
   .inputValidator((data) => githubUrlSchema.parse(data))
-  .handler(async ({ data: repoUrl }) => {
+  .handler(async ({ data: repoUrl, context }) => {
+    // Check auth
+    if (!context.auth?.user?.id) {
+      throw new Error("Unauthorized");
+    }
+    const userId = context.auth.user.id;
+
     const GITHUB_TOKEN = process.env['GITHUB_TOKEN'];
     const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
@@ -133,7 +140,7 @@ export const analyzeRepository = createServerFn({ method: "POST" })
 
       const readmePath = foundConfigFiles.find(f => f.toLowerCase().endsWith("readme.md"));
 
-      return {
+      const result = {
         repository: {
           github_url: repoUrl,
           owner: repository.owner.login,
@@ -157,13 +164,30 @@ export const analyzeRepository = createServerFn({ method: "POST" })
           project_structure: projectStructure,
           environment_variables: technologies.env_vars,
           license: technologies.license,
-          existing_readme: readmePath ? detectedConfigs[readmePath] : null,
+          existing_readme: readmePath ? (detectedConfigs[readmePath] || null) : null,
           analysis_data: {
             file_count: files.length,
-            full_tree: files.slice(0, 100), // Limit for safety
+            full_tree: files.slice(0, 100),
           }
         }
       };
+
+      // 5. Persist to database server-side for security and atomicity
+      const { data: repo, error: repoError } = await supabaseAdmin
+        .from('repositories')
+        .insert([{ ...result.repository, user_id: userId }])
+        .select()
+        .single();
+      
+      if (repoError) throw repoError;
+
+      const { error: analysisError } = await supabaseAdmin
+        .from('repository_analyses')
+        .insert([{ ...result.analysis, repository_id: repo.id }]);
+
+      if (analysisError) throw analysisError;
+
+      return repo;
     } catch (error: any) {
       if (error.status === 404) {
         throw new Error("Repository not found or is private.");
