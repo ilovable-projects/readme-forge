@@ -66,15 +66,20 @@ export const commitReadmeToGithub = createServerFn({ method: "POST" })
       }
 
       // 3. Create or update file
-      const { data: commitResult } = await octokit.rest.repos.createOrUpdateFileContents({
+      const params: any = {
         owner: data.owner,
         repo: data.repo,
         path: data.path,
         branch: data.branch,
         message: data.message,
         content: Buffer.from(data.content).toString("base64"),
-        sha: sha ?? undefined,
-      });
+      };
+      
+      if (sha) {
+        params.sha = sha;
+      }
+
+      const { data: commitResult } = await octokit.rest.repos.createOrUpdateFileContents(params);
 
       return {
         success: true,
