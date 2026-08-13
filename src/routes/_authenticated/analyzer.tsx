@@ -130,11 +130,9 @@ function AnalyzerPage() {
 
   const handleDirectAnalysis = async (url: string) => {
     setRepoUrl(url);
-    // Since startAnalysis uses state, we need to ensure the state is updated or pass the URL directly
-    // Let's modify startAnalysis slightly or just trigger it
-    // For now, triggering via the hidden button is safer if we don't want to refactor startAnalysis logic
     const trigger = document.getElementById('start-analysis-trigger');
     if (trigger) trigger.click();
+  };
 
   return (
     <div className="min-h-screen bg-background p-8">
