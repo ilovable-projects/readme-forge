@@ -446,9 +446,9 @@ function EditorPage() {
             </Link>
           </Button>
           <Separator orientation="vertical" className="h-6" />
-          <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4 text-primary" />
-            <span className="text-sm font-bold truncate max-w-[150px]">
+          <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+            <FileText className="h-4 w-4 text-primary shrink-0" />
+            <span className="text-sm font-bold truncate max-w-[100px] md:max-w-[200px]">
               {analysis?.repositories?.name || "README.md"}
             </span>
             <Badge variant="secondary" className="ml-2 text-[10px] uppercase tracking-tighter">
@@ -471,7 +471,7 @@ function EditorPage() {
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="hidden xl:flex items-center gap-2">
           {history.length > 0 && (
             <Button variant="ghost" size="sm" onClick={handleUndo}>
               <Undo2 className="mr-2 h-4 w-4" />
@@ -500,6 +500,44 @@ function EditorPage() {
             {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
             Save
           </Button>
+        </div>
+
+        <div className="flex xl:hidden items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                Actions
+                <ChevronRight className="ml-2 h-4 w-4 rotate-90" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>README Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleReset}>
+                <RefreshCcw className="mr-2 h-4 w-4" />
+                Reset Version
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsCommitModalOpen(true)}>
+                <Code2 className="mr-2 h-4 w-4" />
+                Commit to GitHub
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsExportModalOpen(true)}>
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Export README
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/templates">
+                  <Layers className="mr-2 h-4 w-4" />
+                  Change Template
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => debouncedSave(markdown, documentId)} disabled={isSaving}>
+                <Save className="mr-2 h-4 w-4" />
+                Save Now
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
@@ -584,15 +622,15 @@ function EditorPage() {
                 )}
                 <textarea 
                   ref={textareaRef}
-                  className="h-full w-full resize-none bg-background p-8 font-mono text-sm leading-relaxed outline-none focus:ring-0 custom-scrollbar"
+                  className="h-full w-full resize-none bg-background p-4 md:p-8 font-mono text-sm leading-relaxed outline-none focus:ring-0 custom-scrollbar"
                   value={markdown}
                   onChange={handleMarkdownChange}
                   placeholder="Start writing your README..."
                 />
              </TabsContent>
 
-             <TabsContent value="preview" className="flex-1 m-0 p-0 overflow-y-auto bg-card/5 scroll-smooth custom-scrollbar">
-                <div className="mx-auto max-w-4xl p-6 sm:p-12">
+             <TabsContent value="preview" className="flex-1 m-0 p-0 overflow-y-auto bg-card/5 scroll-smooth custom-scrollbar relative">
+                <div className="mx-auto max-w-4xl p-4 md:p-6 lg:p-12">
                    <Card className="border-border/40 shadow-xl bg-background overflow-hidden">
                       <CardContent className="p-0">
                          <div className="flex items-center gap-2 border-b border-border/40 bg-secondary/20 px-4 py-2">
@@ -604,7 +642,7 @@ function EditorPage() {
                                <div className="h-2 w-2 rounded-full bg-border"></div>
                             </div>
                          </div>
-                         <div className="p-6 sm:p-10">
+                         <div className="p-4 md:p-10">
                             <div className="markdown-body !bg-transparent !font-sans max-w-none prose dark:prose-invert prose-pre:p-0 prose-pre:bg-transparent">
                                <ReactMarkdown 
                                  remarkPlugins={[remarkGfm]} 

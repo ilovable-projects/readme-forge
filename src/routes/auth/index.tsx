@@ -17,6 +17,7 @@ function AuthPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('login');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -74,7 +75,7 @@ function AuthPage() {
           <CardDescription>Enter your details to access your account</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-secondary/50">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -99,7 +100,13 @@ function AuthPage() {
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <form 
+                onSubmit={(e) => { 
+                  e.preventDefault(); 
+                  handleEmailAuth(activeTab as 'login' | 'signup'); 
+                }} 
+                className="space-y-4"
+              >
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input 
@@ -108,7 +115,8 @@ function AuthPage() {
                     placeholder="name@example.com" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="bg-background/50"
+                    className="bg-background/50 focus:ring-primary/30"
+                    required
                   />
                 </div>
                 <div className="space-y-2">
@@ -118,50 +126,54 @@ function AuthPage() {
                     type="password" 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-background/50"
+                    className="bg-background/50 focus:ring-primary/30"
+                    required
                   />
                 </div>
-              </div>
-            </div>
+                
+                <TabsContent value="login" className="mt-4 space-y-4">
+                  <Button 
+                    type="submit"
+                    className="w-full shadow-lg shadow-primary/20" 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
+                    Sign In
+                  </Button>
+                </TabsContent>
+                
+                <TabsContent value="signup" className="mt-4">
+                  <Button 
+                    type="submit"
+                    className="w-full shadow-lg shadow-primary/20" 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
+                    Create Account
+                  </Button>
+                </TabsContent>
+              </form>
 
-            <TabsContent value="login" className="mt-4 space-y-4">
-              <Button 
-                className="w-full" 
-                onClick={() => handleEmailAuth('login')}
-                disabled={isLoading}
-              >
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
-                Sign In
-              </Button>
-              <Button
-                variant="link"
-                className="w-full text-xs text-muted-foreground"
-                onClick={async () => {
-                  if (!email) {
-                    toast.error("Please enter your email address first.");
-                    return;
-                  }
-                  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin + '/auth/reset-password',
-                  });
-                  if (error) toast.error(error.message);
-                  else toast.success("Password reset email sent!");
-                }}
-              >
-                Forgot password?
-              </Button>
-            </TabsContent>
-            
-            <TabsContent value="signup" className="mt-4">
-              <Button 
-                className="w-full" 
-                onClick={() => handleEmailAuth('signup')}
-                disabled={isLoading}
-              >
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
-                Create Account
-              </Button>
-            </TabsContent>
+              {activeTab === 'login' && (
+                <Button
+                  variant="link"
+                  className="w-full text-xs text-muted-foreground hover:text-primary transition-colors"
+                  onClick={async () => {
+                    if (!email) {
+                      toast.error("Please enter your email address first.");
+                      return;
+                    }
+                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                      redirectTo: window.location.origin + '/auth/reset-password',
+                    });
+                    if (error) toast.error(error.message);
+                    else toast.success("Password reset email sent!");
+                  }}
+                >
+                  Forgot password?
+                </Button>
+              )}
+            </div>
           </Tabs>
         </CardContent>
         <CardFooter className="flex justify-center border-t border-border/40 pt-6">

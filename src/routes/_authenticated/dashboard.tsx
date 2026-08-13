@@ -12,8 +12,17 @@ import {
   Layout,
   Search,
   LogOut,
-  Loader2
+  Loader2,
+  Menu
 } from "lucide-react";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -78,15 +87,67 @@ function DashboardPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-64 border-r border-border/40 bg-card/30 backdrop-blur-xl">
-        <div className="flex h-16 items-center gap-2 px-6 border-b border-border/40">
+    <div className="flex min-h-screen bg-background relative">
+      <div className="lg:hidden absolute top-4 left-4 z-50">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon" className="h-10 w-10 bg-card/50 backdrop-blur-md border-border/40">
+              <LayoutDashboard className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-56 mt-2">
+            <DropdownMenuLabel>Navigation</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link to="/dashboard" className="flex items-center gap-2">
+                <LayoutDashboard className="h-4 w-4" />
+                Dashboard
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/analyzer" className="flex items-center gap-2">
+                <Search className="h-4 w-4" />
+                Analyzer
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/templates" className="flex items-center gap-2">
+                <Layout className="h-4 w-4" />
+                Templates
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/settings" className="flex items-center gap-2">
+                <SettingsIcon className="h-4 w-4" />
+                Settings
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="text-rose-400">
+              <LogOut className="h-4 w-4 mr-2" />
+              Log Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 border-b border-border/40 bg-card/30 backdrop-blur-xl z-40 flex items-center justify-center">
+        <Link to="/dashboard" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
             <Code2 className="h-5 w-5 text-primary-foreground" />
           </div>
           <span className="text-lg font-bold tracking-tight">READMEForge</span>
-        </div>
+        </Link>
+      </header>
+
+      {/* Sidebar */}
+      <aside className="fixed left-0 top-0 h-full w-64 border-r border-border/40 bg-card/30 backdrop-blur-xl hidden lg:block">
+        <Link to="/dashboard" className="flex h-16 items-center gap-2 px-6 border-b border-border/40 hover:bg-secondary/20 transition-colors">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+            <Code2 className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <span className="text-lg font-bold tracking-tight">READMEForge</span>
+        </Link>
         <nav className="p-4 space-y-2 flex flex-col h-[calc(100%-4rem)]">
           <div className="flex-1 space-y-2">
             <Link to="/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium transition-colors">
@@ -114,12 +175,12 @@ function DashboardPage() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 ml-64 p-8">
+      <main className="flex-1 lg:ml-64 p-4 md:p-8 pt-20 lg:pt-8 overflow-x-hidden">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user?.email?.split('@')[0]}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Welcome back, {user?.email?.split('@')[0]}</h1>
               <p className="text-muted-foreground">Manage your repository documentation and health scores.</p>
             </div>
             <Button className="rounded-lg shadow-lg shadow-primary/20" asChild>
@@ -204,7 +265,9 @@ function DashboardPage() {
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h3 className="font-bold hover:underline cursor-pointer">{repo.owner} / {repo.name}</h3>
+                            <h3 className="font-bold hover:text-primary transition-colors cursor-pointer" onClick={() => navigate({ to: '/editor', search: { repositoryId: repo.id } })}>
+                              {repo.owner} / {repo.name}
+                            </h3>
                             <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-widest">{repo.language || 'Unknown'}</Badge>
                           </div>
                           <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
@@ -230,7 +293,7 @@ function DashboardPage() {
                              <div className={`h-full bg-primary`} style={{ width: `100%` }} />
                           </div>
                         </div>
-                        <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity" asChild>
+                        <Button variant="ghost" size="icon" className="opacity-0 lg:group-hover:opacity-100 transition-opacity" asChild>
                           <Link to="/editor" search={{ repositoryId: repo.id }}>
                             <ChevronRight className="h-4 w-4" />
                           </Link>
