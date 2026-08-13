@@ -41,15 +41,15 @@ export const analyzeRepository = createServerFn({ method: "POST" })
   .validator((data: unknown) => z.string().url().parse(data))
   .handler(async ({ data, context }) => {
     const userId = context.userId;
-    const urlString = String(data);
+    const urlString = data as string;
 
     const GITHUB_TOKEN = process.env['GITHUB_TOKEN'];
     const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
     const cleanUrl = urlString.split('?')[0].split('#')[0].replace(/\/$/, "");
     const parts = cleanUrl.replace("https://github.com/", "").split("/").filter(Boolean);
-    const owner = parts[0];
-    const repo = parts[1];
+    const owner = parts[0] as string;
+    const repo = parts[1] as string;
 
     if (!owner || !repo) {
       throw new Error("Invalid GitHub repository URL format.");
