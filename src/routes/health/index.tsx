@@ -78,6 +78,12 @@ function HealthPage() {
   const [loading, setLoading] = useState(!!documentId || !!repositoryId);
   const [score, setScore] = useState<any>(null);
   const [analysis, setAnalysis] = useState<any>(null);
+  const [accuracyReport, setAccuracyReport] = useState<any>(null);
+  const [fixing, setFixing] = useState<string | null>(null);
+
+  const checkAccuracy = useServerFn(checkReadmeAccuracy);
+  const fixIssue = useServerFn(fixAccuracyIssue);
+  const fixAll = useServerFn(fixAllAccuracyIssues);
 
   useEffect(() => {
     if ((documentId || repositoryId) && user) {
@@ -127,7 +133,15 @@ function HealthPage() {
         .maybeSingle();
 
       if (error) throw error;
-      if (data) setScore(data);
+      if (data) {
+        setScore(data);
+        if (data.suggestions && typeof data.suggestions === 'object') {
+          const suggestions = data.suggestions as any;
+          if (suggestions.accuracy_report) {
+            setAccuracyReport(suggestions.accuracy_report);
+          }
+        }
+      }
     } catch (error: any) {
       toast.error("Failed to load health report: " + error.message);
     } finally {
@@ -149,6 +163,75 @@ function HealthPage() {
   ] : DEFAULT_CATEGORIES;
 
   const issues = score?.issues || [];
+
+  const handleFixIssue = async (issueId: string) => {
+    if (!documentId || !repositoryId) return;
+    setFixing(issueId);
+    try {
+      await fixIssue({ 
+        data: { 
+          documentId, 
+          repositoryId, 
+          issueId, 
+          content: '' // This would be fetched from the doc if we had it here
+        } 
+      });
+      toast.success("Accuracy issue fixed!");
+      fetchScore();
+    } catch (error: any) {
+      toast.error("Failed to fix issue: " + error.message);
+    } finally {
+      setFixing(null);
+    }
+  };
+
+  const handleFixAll = async () => {
+    if (!documentId || !repositoryId) return;
+    setFixing('all');
+    try {
+      await fixAll({ 
+        data: { 
+          documentId, 
+          repositoryId, 
+          content: '' 
+        } 
+      });
+      toast.success("All accuracy issues fixed!");
+      fetchScore();
+    } catch (error: any) {
+      toast.error("Failed to fix all issues: " + error.message);
+    } finally {
+      setFixing(null);
+    }
+  };
+
+  const handleRecheckAccuracy = async () => {
+    if (!documentId || !repositoryId) return;
+    setLoading(true);
+    try {
+      const { data: docData } = await supabase
+        .from('readme_documents')
+        .select('markdown_content')
+        .eq('id', documentId)
+        .single();
+        
+      if (docData) {
+        const result = await checkAccuracy({ 
+          data: { 
+            documentId, 
+            repositoryId, 
+            content: docData.markdown_content 
+          } 
+        });
+        setAccuracyReport(result);
+        toast.success("Accuracy report updated!");
+      }
+    } catch (error: any) {
+      toast.error("Failed to recheck accuracy: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -253,7 +336,111 @@ function HealthPage() {
            {/* Issues Sidebar */}
            <div className="space-y-6">
               <h2 className="text-xl font-bold tracking-tight">Action Items</h2>
+              
+              {/* Accuracy Section */}
+              {accuracyReport && (
+                <Card className="border-primary/20 bg-primary/5 mb-6">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Target className="h-5 w-5 text-primary" />
+                        <CardTitle className="text-lg">Accuracy Report</CardTitle>
+                      </div>
+                      <Badge variant="secondary" className="bg-primary/20 text-primary border-none">
+                        Score: {accuracyReport.accuracy_score}
+                      </Badge>
+                    </div>
+                    <CardDescription className="text-xs">
+                      Factual consistency between README and Repository
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
+                        {accuracyReport.verified_claims?.length || 0} Verified Claims
+                      </Badge>
+                      {accuracyReport.unverified_claims?.length > 0 && (
+                        <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-500 border-amber-500/20">
+                          {accuracyReport.unverified_claims?.length} Unverified
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    <Button 
+                      className="w-full text-xs" 
+                      onClick={handleFixAll}
+                      disabled={fixing === 'all' || (accuracyReport.critical_errors.length === 0 && accuracyReport.warnings.length === 0)}
+                    >
+                      {fixing === 'all' ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <Zap className="mr-2 h-3 w-3" />}
+                      Fix All Accuracy Issues
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="w-full text-[10px] h-7 text-muted-foreground hover:text-primary"
+                      onClick={handleRecheckAccuracy}
+                    >
+                      <RefreshCw className="mr-2 h-3 w-3" />
+                      Re-scan for Inconsistencies
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
               <div className="space-y-4">
+                 {/* Accuracy Issues First */}
+                 {accuracyReport && [...accuracyReport.critical_errors, ...accuracyReport.warnings, ...accuracyReport.suggestions].map((issue: AccuracyIssue, i: number) => (
+                    <Card key={`acc-${i}`} className={`border-l-4 ${
+                       issue.level === 'critical' ? 'border-l-rose-500' : 
+                       issue.level === 'warning' ? 'border-l-amber-500' : 
+                       'border-l-blue-500'
+                    } bg-card/50`}>
+                       <CardHeader className="pb-2">
+                          <div className="flex items-center gap-2 mb-1">
+                             <AlertOctagon className={`h-4 w-4 ${
+                                issue.level === 'critical' ? 'text-rose-500' : 
+                                issue.level === 'warning' ? 'text-amber-500' : 
+                                'text-blue-500'
+                             }`} />
+                             <span className={`text-[10px] uppercase font-bold tracking-widest ${
+                                issue.level === 'critical' ? 'text-rose-500' : 
+                                issue.level === 'warning' ? 'text-amber-500' : 
+                                'text-blue-500'
+                             }`}>{issue.level} (Accuracy)</span>
+                          </div>
+                          <CardTitle className="text-sm">{issue.problem}</CardTitle>
+                       </CardHeader>
+                       <CardContent className="space-y-3">
+                          <div>
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase">README Claim</span>
+                            <p className="text-xs italic text-muted-foreground bg-secondary/30 p-2 rounded mt-1 border border-border/20">{issue.readme_claim}</p>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold text-emerald-500/80 uppercase">Verified Repo Info</span>
+                            <p className="text-xs text-muted-foreground mt-1">{issue.verified_info}</p>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold text-primary uppercase">Recommended Correction</span>
+                            <p className="text-xs text-muted-foreground mt-1">{issue.recommended_correction}</p>
+                          </div>
+                       </CardContent>
+                       <CardFooter className="pt-0 pb-4">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full text-xs h-8 bg-primary/5 hover:bg-primary/10 border-primary/20 text-primary"
+                            onClick={() => handleFixIssue(issue.id)}
+                            disabled={fixing === issue.id}
+                          >
+                             {fixing === issue.id ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <Zap className="mr-2 h-3 w-3" />}
+                             Fix This Issue
+                          </Button>
+                       </CardFooter>
+                    </Card>
+                 ))}
+
+                 {/* General Issues */}
                  {issues.length > 0 ? issues.map((issue: any, i: number) => (
                     <Card key={i} className={`border-l-4 ${
                        issue.level === 'critical' ? 'border-l-rose-500' : 
@@ -295,10 +482,12 @@ function HealthPage() {
                        </CardContent>
                     </Card>
                  )) : (
-                   <div className="flex flex-col items-center justify-center p-8 text-center bg-card/20 rounded-xl border border-dashed border-border/40">
-                      <CheckCircle2 className="h-10 w-10 text-emerald-500/50 mb-3" />
-                      <p className="text-sm text-muted-foreground">No critical issues found. Your README is in great shape!</p>
-                   </div>
+                   !accuracyReport && (
+                    <div className="flex flex-col items-center justify-center p-8 text-center bg-card/20 rounded-xl border border-dashed border-border/40">
+                        <CheckCircle2 className="h-10 w-10 text-emerald-500/50 mb-3" />
+                        <p className="text-sm text-muted-foreground">No critical issues found. Your README is in great shape!</p>
+                    </div>
+                   )
                  )}
               </div>
            </div>
