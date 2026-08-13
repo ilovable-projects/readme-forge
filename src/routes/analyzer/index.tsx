@@ -10,7 +10,7 @@ import {
   ShieldCheck, 
   FileCheck,
   Zap,
-  Github
+  GitGraph
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -116,7 +116,7 @@ function AnalyzerPage() {
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="relative flex-1">
-                <Github className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <GitGraph className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input 
                   placeholder="https://github.com/username/repo" 
                   className="h-14 pl-10 border-border/50 text-lg bg-background/50 focus:bg-background"

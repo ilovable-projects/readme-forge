@@ -38,7 +38,7 @@ const githubUrlSchema = z.string().url().refine((url) => {
 
 export const analyzeRepository = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => githubUrlSchema.parse(data))
+  .validator((data) => githubUrlSchema.parse(data))
   .handler(async ({ data: repoUrl, context }) => {
     const userId = context.userId;
 

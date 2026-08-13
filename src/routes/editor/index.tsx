@@ -12,7 +12,14 @@ import {
   ArrowLeft,
   ChevronRight,
   Maximize2,
-  Loader2
+  Loader2,
+  Undo2,
+  ArrowUpRight,
+  Check,
+  ShieldCheck,
+  Code2,
+  Zap,
+  GitGraph
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,11 +27,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useState, useEffect } from "react";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-data";
 import { toast } from "sonner";
 import { z } from "zod";
+import ReactMarkdown from "react-markdown";
+import debounce from "lodash.debounce";
+import { useServerFn } from "@tanstack/react-start";
+import { editReadmeSection } from "@/lib/readme-editor.functions";
 
 const editorSearchSchema = z.object({
   repositoryId: z.string().optional(),
@@ -41,21 +60,32 @@ const SECTIONS = [
   "Deployment", "Contributing", "License"
 ];
 
-const MOCK_MARKDOWN = `# Project Title
-
-Enter your repository URL to generate a custom README.
-`;
+const AI_ACTIONS = [
+  { id: "improve", label: "Improve", icon: Sparkles },
+  { id: "simplify", label: "Simplify", icon: Eye },
+  { id: "professionalize", label: "Professionalize", icon: ShieldCheck },
+  { id: "fix_grammar", label: "Fix Grammar", icon: CheckCircle2 },
+  { id: "more_technical", label: "Make More Technical", icon: Code2 },
+  { id: "beginner_friendly", label: "Make More Beginner Friendly", icon: Zap },
+];
 
 function EditorPage() {
   const { repositoryId } = useSearch({ from: '/editor/' });
   const { user } = useAuth();
-  const [markdown, setMarkdown] = useState(MOCK_MARKDOWN);
+  const editSectionFn = useServerFn(editReadmeSection);
+
+  const [markdown, setMarkdown] = useState("");
+  const [initialMarkdown, setInitialMarkdown] = useState("");
+  const [history, setHistory] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(!!repositoryId);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState(false);
   const [documentId, setDocumentId] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<any>(null);
+  const [selectedSection, setSelectedSection] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Load document and analysis
   useEffect(() => {
     if (repositoryId && user) {
       loadDocument();
@@ -65,7 +95,6 @@ function EditorPage() {
   const loadDocument = async () => {
     setIsLoading(true);
     try {
-      // Load analysis first to have context
       const { data: analysisData } = await supabase
         .from('repository_analyses')
         .select('*')
@@ -85,11 +114,9 @@ function EditorPage() {
       if (error) throw error;
       
       if (data) {
-        setMarkdown(data.markdown_content);
+        setMarkdown(data.markdown_content || "");
+        setInitialMarkdown(data.markdown_content || "");
         setDocumentId(data.id);
-      } else if (analysisData) {
-        // If no document exists, suggest generating one
-        setMarkdown(`# ${analysisData.repository_id}\n\nAnalyzing your repository... click "Generate with AI" to create your first README.`);
       }
     } catch (error: any) {
       toast.error("Failed to load document: " + error.message);
@@ -98,96 +125,155 @@ function EditorPage() {
     }
   };
 
-  const handleGenerate = async () => {
-    if (!analysis) {
-      toast.error("No repository analysis found. Please re-analyze the repository.");
-      return;
-    }
-
-    setIsGenerating(true);
-    try {
-      const data = analysis.analysis_data;
-      // If analysis_data doesn't have the new structure yet, fallback to basic detection
-      const techStack = data.frameworks 
-        ? [...data.frameworks.value, data.language.value].filter(Boolean).join(", ")
-        : [...(analysis.detected_frameworks || []), ...(analysis.detected_languages || [])].join(", ");
+  // Debounced autosave
+  const debouncedSave = useCallback(
+    debounce(async (content: string, docId: string | null) => {
+      if (!user || !repositoryId || !content) return;
       
-      let content = `# ${analysis.repository_id || 'Project'}\n\n`;
-      content += `## Overview\nA modern project built with ${techStack}.\n\n`;
-      
-      if (data.frameworks?.value.length) {
-        content += `## Tech Stack\n${data.frameworks.value.map((f: string) => `- ${f}`).join('\n')}\n\n`;
-      } else if (analysis.detected_frameworks?.length) {
-        content += `## Tech Stack\n${analysis.detected_frameworks.map((f: string) => `- ${f}`).join('\n')}\n\n`;
-      }
-
-      if (data.commands) {
-        content += `## Getting Started\n\n`;
-        if (data.packageManager?.value) {
-          content += `This project uses **${data.packageManager.value}** as its package manager.\n\n`;
+      setIsSaving(true);
+      try {
+        if (docId) {
+          await supabase
+            .from('readme_documents')
+            .update({ markdown_content: content, updated_at: new Date().toISOString() })
+            .eq('id', docId);
+        } else {
+          const { data } = await supabase
+            .from('readme_documents')
+            .insert([{
+              user_id: user.id,
+              repository_id: repositoryId,
+              title: 'README.md',
+              markdown_content: content
+            }])
+            .select()
+            .single();
+          if (data) setDocumentId(data.id);
         }
-        
-        content += `### Commands\n\n`;
-        if (data.commands.development?.value) content += `- **Development**: \`${data.commands.development.value}\`\n`;
-        if (data.commands.build?.value) content += `- **Build**: \`${data.commands.build.value}\`\n`;
-        if (data.commands.test?.value) content += `- **Test**: \`${data.commands.test.value}\`\n`;
-        if (data.commands.start?.value) content += `- **Start**: \`${data.commands.start.value}\`\n`;
-        content += `\n`;
+      } catch (e) {
+        console.error("Autosave failed", e);
+      } finally {
+        setIsSaving(false);
       }
+    }, 2000),
+    [user, repositoryId]
+  );
 
-      const envVars = data.envVars?.value || analysis.environment_variables;
-      if (envVars?.length) {
-        content += `## Environment Variables\nTo run this project, you will need to add the following environment variables to your .env file:\n\n${envVars.map((v: string) => `- \`${v}\``).join('\n')}\n\n`;
+  useEffect(() => {
+    if (markdown && markdown !== initialMarkdown) {
+      debouncedSave(markdown, documentId);
+    }
+  }, [markdown, documentId, debouncedSave, initialMarkdown]);
+
+  const handleMarkdownChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMarkdown(e.target.value);
+  };
+
+  const handleUndo = () => {
+    if (history.length > 0) {
+      const prev = history[history.length - 1];
+      if (prev !== undefined) {
+        setMarkdown(prev);
       }
-
-      const license = data.license?.value || analysis.license;
-      if (license) {
-        content += `## License\nThis project is licensed under the ${license} License.\n`;
-      }
-
-      setMarkdown(content);
-      toast.success("README generated based on repository analysis!");
-    } catch (error: any) {
-      toast.error("Generation failed: " + error.message);
-    } finally {
-      setIsGenerating(false);
+      setHistory(prevHistory => prevHistory.slice(0, -1));
+      toast.info("Changes reverted");
     }
   };
 
-  const handleSave = async () => {
-    if (!user || !repositoryId) {
-      toast.error("You must be logged in and have a repository selected to save.");
+  const extractSection = (content: string, sectionTitle: string) => {
+    const lines = content.split('\n');
+    let startIndex = -1;
+    let endIndex = -1;
+
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i]?.toLowerCase().includes(`## ${sectionTitle.toLowerCase()}`)) {
+        startIndex = i;
+        break;
+      }
+    }
+
+    if (startIndex === -1) return null;
+
+    for (let i = startIndex + 1; i < lines.length; i++) {
+      if (lines[i]?.startsWith('## ')) {
+        endIndex = i;
+        break;
+      }
+    }
+
+    if (endIndex === -1) endIndex = lines.length;
+
+    return {
+      startIndex,
+      endIndex,
+      content: lines.slice(startIndex, endIndex).join('\n')
+    };
+  };
+
+  const handleAiAction = async (action: typeof AI_ACTIONS[0]) => {
+    if (!selectedSection || !documentId) {
+      toast.error("Please select a section from the sidebar first.");
       return;
     }
 
-    setIsSaving(true);
-    try {
-      if (documentId) {
-        const { error } = await supabase
-          .from('readme_documents')
-          .update({ markdown_content: markdown, updated_at: new Date().toISOString() })
-          .eq('id', documentId);
-        if (error) throw error;
-      } else {
-        const { data, error } = await supabase
-          .from('readme_documents')
-          .insert([{
-            user_id: user.id,
-            repository_id: repositoryId,
-            title: 'README.md',
-            markdown_content: markdown
-          }])
-          .select()
-          .single();
-        if (error) throw error;
-        setDocumentId(data.id);
-      }
-      toast.success("Changes saved successfully!");
-    } catch (error: any) {
-      toast.error("Failed to save: " + error.message);
-    } finally {
-      setIsSaving(false);
+    const section = extractSection(markdown, selectedSection);
+    if (!section) {
+      toast.error(`Section "${selectedSection}" not found in your README.`);
+      return;
     }
+
+    setIsAiLoading(true);
+    try {
+      setHistory(prev => [...prev, markdown]);
+      
+      const result = await editSectionFn({
+        data: {
+          documentId,
+          sectionTitle: selectedSection,
+          currentContent: section.content,
+          action: action.id as any,
+          context: analysis?.analysis_data || {}
+        }
+      });
+
+      const lines = markdown.split('\n');
+      const newLines = [
+        ...lines.slice(0, section.startIndex),
+        result.newContent,
+        ...lines.slice(section.endIndex)
+      ];
+
+      setMarkdown(newLines.join('\n'));
+      toast.success(`${action.label} applied to ${selectedSection}`);
+    } catch (error: any) {
+      toast.error("AI action failed: " + error.message);
+      setHistory(prev => prev.slice(0, -1));
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  const handleReset = () => {
+    if (initialMarkdown) {
+      setHistory(prev => [...prev, markdown]);
+      setMarkdown(initialMarkdown);
+      toast.info("Reset to initial version");
+    }
+  };
+
+  const handleDownload = () => {
+    const blob = new Blob([markdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'README.md';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(markdown);
+    toast.success("Markdown copied to clipboard!");
   };
 
   if (isLoading) {
@@ -201,7 +287,6 @@ function EditorPage() {
 
   return (
     <div className="flex h-screen flex-col bg-background overflow-hidden">
-      {/* Editor Header */}
       <header className="flex h-14 items-center justify-between border-b border-border/40 bg-card/30 px-6 backdrop-blur-md">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild>
@@ -213,54 +298,61 @@ function EditorPage() {
           <Separator orientation="vertical" className="h-6" />
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-primary" />
-            <span className="text-sm font-bold">README.md</span>
-            <Badge variant="secondary" className="ml-2 text-[10px] uppercase tracking-tighter">Draft</Badge>
+            <span className="text-sm font-bold truncate max-w-[150px]">
+              {analysis?.repository?.name || "README.md"}
+            </span>
+            <Badge variant="secondary" className="ml-2 text-[10px] uppercase tracking-tighter">
+              {isSaving ? "Saving..." : "Saved"}
+            </Badge>
           </div>
         </div>
         
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => {
-            navigator.clipboard.writeText(markdown);
-            toast.success("Markdown copied to clipboard!");
-          }}>
+          {history.length > 0 && (
+            <Button variant="ghost" size="sm" onClick={handleUndo}>
+              <Undo2 className="mr-2 h-4 w-4" />
+              Undo
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={handleReset}>
+            <RefreshCcw className="mr-2 h-4 w-4" />
+            Reset
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleCopy}>
             <Copy className="mr-2 h-4 w-4" />
             Copy
           </Button>
-          <Button variant="outline" size="sm" onClick={() => {
-            const blob = new Blob([markdown], { type: 'text/markdown' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'README.md';
-            a.click();
-            URL.revokeObjectURL(url);
-          }}>
+          <Button variant="outline" size="sm" onClick={handleDownload}>
             <Download className="mr-2 h-4 w-4" />
             Download
           </Button>
-          <Button size="sm" className="bg-primary hover:bg-primary/90" onClick={handleSave} disabled={isSaving}>
+          <Button size="sm" className="bg-primary hover:bg-primary/90" onClick={() => debouncedSave(markdown, documentId)} disabled={isSaving}>
             {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            Save Changes
+            Save
           </Button>
         </div>
       </header>
 
-      {/* Editor Main */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Section Navigation (Sidebar) */}
-        <aside className="w-56 border-r border-border/40 bg-card/20 overflow-y-auto hidden md:block">
+        <aside className="w-64 border-r border-border/40 bg-card/20 overflow-y-auto hidden md:block">
           <div className="p-4">
             <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">Sections</h3>
             <div className="space-y-1">
-              {SECTIONS.map((section) => (
-                <button 
-                  key={section}
-                  className="flex w-full items-center justify-between px-2 py-1.5 text-sm rounded-md hover:bg-secondary/50 transition-colors text-left"
-                >
-                  <span className="text-muted-foreground">{section}</span>
-                  <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                </button>
-              ))}
+              {SECTIONS.map((section) => {
+                const isDetected = markdown.toLowerCase().includes(`## ${section.toLowerCase()}`);
+                return (
+                  <button 
+                    key={section}
+                    onClick={() => setSelectedSection(section)}
+                    className={`flex w-full items-center justify-between px-2 py-1.5 text-sm rounded-md transition-colors text-left ${
+                      selectedSection === section ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-secondary/50 text-muted-foreground'
+                    }`}
+                  >
+                    <span>{section}</span>
+                    {isDetected && <CheckCircle2 className="h-3 w-3 text-emerald-500" />}
+                  </button>
+                );
+              })}
             </div>
             
             <Separator className="my-6" />
@@ -269,27 +361,25 @@ function EditorPage() {
                <div>
                   <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">AI Actions</h4>
                   <div className="space-y-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full justify-start text-xs border-primary/20 bg-primary/5 text-primary"
-                      onClick={handleGenerate}
-                      disabled={isGenerating}
-                    >
-                      {isGenerating ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <Sparkles className="mr-2 h-3 w-3" />}
-                      Generate with AI
-                    </Button>
-                    <Button variant="outline" size="sm" className="w-full justify-start text-xs">
-                      <RefreshCcw className="mr-2 h-3 w-3" />
-                      Regenerate
-                    </Button>
+                    {AI_ACTIONS.map((action) => (
+                      <Button 
+                        key={action.id}
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full justify-start text-xs border-border/40 hover:border-primary/40 hover:bg-primary/5 group"
+                        disabled={isAiLoading || !selectedSection}
+                        onClick={() => handleAiAction(action)}
+                      >
+                        {isAiLoading ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <action.icon className="mr-2 h-3 w-3 text-muted-foreground group-hover:text-primary" />}
+                        {action.label}
+                      </Button>
+                    ))}
                   </div>
                </div>
             </div>
           </div>
         </aside>
 
-        {/* Content Area */}
         <main className="flex flex-1 overflow-hidden">
           <Tabs defaultValue="editor" className="flex flex-1 flex-col overflow-hidden">
              <div className="flex items-center justify-center border-b border-border/40 px-4 py-1">
@@ -301,40 +391,52 @@ function EditorPage() {
                     Preview
                   </TabsTrigger>
                   <TabsTrigger value="both" className="hidden lg:flex data-[state=active]:bg-secondary/50">
-                    Side-by-Side
+                    Split View
                   </TabsTrigger>
                 </TabsList>
              </div>
 
-             <TabsContent value="editor" className="flex-1 m-0 p-0 overflow-hidden">
+             <TabsContent value="editor" className="flex-1 m-0 p-0 overflow-hidden relative">
+                {isAiLoading && (
+                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/50 backdrop-blur-sm">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="mt-2 text-sm font-medium">AI is working on "{selectedSection}"...</p>
+                  </div>
+                )}
                 <textarea 
+                  ref={textareaRef}
                   className="h-full w-full resize-none bg-background p-8 font-mono text-sm leading-relaxed outline-none focus:ring-0"
                   value={markdown}
-                  onChange={(e) => setMarkdown(e.target.value)}
+                  onChange={handleMarkdownChange}
+                  placeholder="Start writing your README..."
                 />
              </TabsContent>
 
-             <TabsContent value="preview" className="flex-1 m-0 p-0 overflow-y-auto">
-                <div className="mx-auto max-w-3xl p-8 prose prose-invert">
-                   {/* GitHub-style rendering mockup */}
-                   <div className="whitespace-pre-wrap font-sans">
-                      {markdown}
+             <TabsContent value="preview" className="flex-1 m-0 p-0 overflow-y-auto bg-card/5">
+                <div className="mx-auto max-w-4xl p-8 lg:p-12">
+                   <div className="markdown-body !bg-transparent !font-sans max-w-none">
+                      <ReactMarkdown>{markdown}</ReactMarkdown>
                    </div>
                 </div>
              </TabsContent>
 
              <TabsContent value="both" className="flex-1 m-0 p-0 overflow-hidden lg:flex">
                 <div className="flex flex-1">
-                  <div className="flex-1 border-r border-border/40">
+                  <div className="flex-1 border-r border-border/40 relative">
+                    {isAiLoading && (
+                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                      </div>
+                    )}
                     <textarea 
                       className="h-full w-full resize-none bg-background p-6 font-mono text-sm leading-relaxed outline-none focus:ring-0"
                       value={markdown}
-                      onChange={(e) => setMarkdown(e.target.value)}
+                      onChange={handleMarkdownChange}
                     />
                   </div>
-                  <div className="flex-1 overflow-y-auto p-6 bg-card/10">
-                     <div className="prose prose-invert prose-sm whitespace-pre-wrap font-sans">
-                        {markdown}
+                  <div className="flex-1 overflow-y-auto p-6 lg:p-8 bg-card/5">
+                     <div className="markdown-body !bg-transparent !font-sans !text-sm max-w-none">
+                        <ReactMarkdown>{markdown}</ReactMarkdown>
                      </div>
                   </div>
                 </div>
@@ -342,8 +444,7 @@ function EditorPage() {
           </Tabs>
         </main>
         
-        {/* Right Info Sidebar (Optional) */}
-        <aside className="w-80 border-l border-border/40 bg-card/20 hidden xl:block overflow-y-auto">
+        <aside className="w-72 border-l border-border/40 bg-card/20 hidden xl:block overflow-y-auto">
            <div className="p-4 space-y-6">
               <div>
                  <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">Analysis Context</h3>
@@ -379,14 +480,6 @@ function EditorPage() {
                         confidence={analysis.analysis_data.license.confidence} 
                       />
                     )}
-
-                    {analysis?.analysis_data?.envVars && (
-                      <AnalysisItem 
-                        label="Env Vars" 
-                        value={analysis.analysis_data.envVars.value.length > 0 ? `${analysis.analysis_data.envVars.value.length} detected` : "None found"} 
-                        confidence={analysis.analysis_data.envVars.confidence} 
-                      />
-                    )}
                  </div>
                  <Button variant="link" size="sm" className="mt-4 h-auto p-0 text-primary" asChild>
                     <Link to="/health" search={{ repositoryId: repositoryId || "" }}>View health report →</Link>
@@ -396,7 +489,7 @@ function EditorPage() {
               <Separator />
 
               <div>
-                 <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">Documentation Status</h3>
+                 <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">Documentation</h3>
                  <div className="space-y-3">
                     <StatusBadge label="README.md" exists={analysis?.analysis_data?.documentationStatus?.readme} />
                     <StatusBadge label="CONTRIBUTING.md" exists={analysis?.analysis_data?.documentationStatus?.contributing} />
@@ -408,6 +501,7 @@ function EditorPage() {
       </div>
     </div>
   );
+}
 
 function AnalysisItem({ label, value, confidence }: { label: string, value: string | null, confidence: 'verified' | 'likely' | 'unknown' }) {
   if (confidence === 'unknown' && !value) {
@@ -456,6 +550,4 @@ function StatusBadge({ label, exists }: { label: string, exists: boolean }) {
       </span>
     </div>
   );
-}
-
 }
