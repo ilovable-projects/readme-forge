@@ -42,12 +42,12 @@ export const analyzeRepository = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const userId = context.userId;
     const repoUrl = data;
-    if (!repoUrl) throw new Error("URL is required");
+    if (typeof repoUrl !== 'string') throw new Error("URL must be a string");
 
     const GITHUB_TOKEN = process.env['GITHUB_TOKEN'];
     const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
-    const cleanUrl = (repoUrl as string).split('?')[0].split('#')[0].replace(/\/$/, "");
+    const cleanUrl = repoUrl.split('?')[0].split('#')[0].replace(/\/$/, "");
     const parts = cleanUrl.replace("https://github.com/", "").split("/").filter(Boolean);
     const owner = parts[0];
     const repo = parts[1];
