@@ -19,7 +19,8 @@ import {
   ShieldCheck,
   Code2,
   Zap,
-  GitGraph
+  GitGraph,
+  Layers
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -342,6 +343,12 @@ function EditorPage() {
           <Button variant="outline" size="sm" onClick={handleDownload}>
             <Download className="mr-2 h-4 w-4" />
             Download
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/templates">
+              <Layers className="mr-2 h-4 w-4" />
+              Change Template
+            </Link>
           </Button>
           <Button size="sm" className="bg-primary hover:bg-primary/90" onClick={() => debouncedSave(markdown, documentId)} disabled={isSaving}>
             {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
