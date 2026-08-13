@@ -88,6 +88,7 @@ export function useCreateRepository() {
       queryClient.invalidateQueries({ queryKey: ['repositories', user?.id] });
     },
   });
+}
 
 export function useAnalyzeRepository() {
   const queryClient = useQueryClient();
