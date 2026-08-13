@@ -27,7 +27,9 @@ import {
   ArrowRight,
   GitBranch,
   FileBox,
-  MessageSquare
+  MessageSquare,
+  History,
+  Diff
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -65,6 +67,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { editReadmeSection } from "@/lib/readme-editor.functions";
 import { calculateReadmeScore } from "@/lib/readme-health.functions";
 import { commitReadmeToGithub } from "@/lib/github-commit.functions";
+import { checkReadmeFreshness, FreshnessStatus } from "@/lib/readme-freshness.functions";
+import { updateReadmeWithAi } from "@/lib/readme-update.functions";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -99,6 +103,8 @@ function EditorPage() {
   const editSectionFn = useServerFn(editReadmeSection);
   const calculateScoreFn = useServerFn(calculateReadmeScore);
   const commitToGithubFn = useServerFn(commitReadmeToGithub);
+  const checkFreshnessFn = useServerFn(checkReadmeFreshness);
+  const updateWithAiFn = useServerFn(updateReadmeWithAi);
 
   const [markdown, setMarkdown] = useState("");
   const [initialMarkdown, setInitialMarkdown] = useState("");
@@ -119,6 +125,10 @@ function EditorPage() {
   });
   const [commitResult, setCommitResult] = useState<any>(null);
   const [isCommitting, setIsCommitting] = useState(false);
+  const [freshnessStatus, setFreshnessStatus] = useState<FreshnessStatus | null>(null);
+  const [isFreshnessModalOpen, setIsFreshnessModalOpen] = useState(false);
+  const [isDiffModalOpen, setIsDiffModalOpen] = useState(false);
+  const [pendingUpdatedMarkdown, setPendingUpdatedMarkdown] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Load document and analysis
@@ -159,6 +169,8 @@ function EditorPage() {
         setMarkdown(data.markdown_content || "");
         setInitialMarkdown(data.markdown_content || "");
         setDocumentId(data.id);
+        // Check freshness after loading
+        handleCheckFreshness(repositoryId!, data.id);
       }
     } catch (error: any) {
       toast.error("Failed to load document: " + error.message);
@@ -372,6 +384,48 @@ function EditorPage() {
     }
   };
 
+  const handleCheckFreshness = async (repoId: string, docId: string) => {
+    try {
+      const result = await checkFreshnessFn({
+        data: { repositoryId: repoId, documentId: docId }
+      });
+      setFreshnessStatus(result);
+    } catch (e) {
+      console.error("Freshness check failed", e);
+    }
+  };
+
+  const handleUpdateWithAi = async () => {
+    if (!freshnessStatus || !repositoryId || !documentId) return;
+    
+    setIsAiLoading(true);
+    try {
+      const result = await updateWithAiFn({
+        data: {
+          documentId,
+          repositoryId,
+          currentContent: markdown,
+          differences: freshnessStatus.differences
+        }
+      });
+      
+      setPendingUpdatedMarkdown(result.updatedContent);
+      setIsFreshnessModalOpen(false);
+      setIsDiffModalOpen(true);
+    } catch (error: any) {
+      toast.error("AI update failed: " + error.message);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  const applyAiUpdate = () => {
+    setHistory(prev => [...prev, markdown]);
+    setMarkdown(pendingUpdatedMarkdown);
+    setIsDiffModalOpen(false);
+    toast.success("README updated with AI suggestions");
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
@@ -400,6 +454,20 @@ function EditorPage() {
             <Badge variant="secondary" className="ml-2 text-[10px] uppercase tracking-tighter">
               {isSaving ? "Saving..." : "Saved"}
             </Badge>
+            {freshnessStatus && !freshnessStatus.isUpToDate && (
+              <Badge 
+                variant="outline" 
+                className="ml-2 text-[10px] uppercase tracking-tighter border-amber-500/50 text-amber-500 cursor-pointer hover:bg-amber-500/10"
+                onClick={() => setIsFreshnessModalOpen(true)}
+              >
+                Outdated
+              </Badge>
+            )}
+            {freshnessStatus && freshnessStatus.isUpToDate && (
+              <Badge variant="outline" className="ml-2 text-[10px] uppercase tracking-tighter border-emerald-500/50 text-emerald-500">
+                Up to date
+              </Badge>
+            )}
           </div>
         </div>
         
@@ -645,8 +713,119 @@ function EditorPage() {
       <ExportModal />
       <CommitModal />
       <CommitSuccessModal />
+      <FreshnessModal />
+      <DiffModal />
     </div>
   );
+
+  function FreshnessModal() {
+    if (!freshnessStatus) return null;
+    
+    return (
+      <Dialog open={isFreshnessModalOpen} onOpenChange={setIsFreshnessModalOpen}>
+        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-hidden flex flex-col p-0">
+          <DialogHeader className="p-6 pb-2">
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="outline" className="text-amber-500 border-amber-500/30 bg-amber-500/5">
+                Potentially Outdated
+              </Badge>
+              <span className="text-xs text-muted-foreground">Detected {freshnessStatus.differences.length} changes</span>
+            </div>
+            <DialogTitle className="text-xl">Review Changes</DialogTitle>
+            <DialogDescription>
+              The repository has changed since this README was last updated.
+            </DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="flex-1 px-6 py-4">
+            <div className="space-y-4">
+              {freshnessStatus.differences.map((diff, i) => (
+                <div key={i} className="p-4 rounded-lg border border-border/40 bg-secondary/10 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary" className="text-[10px] uppercase tracking-wider">
+                      {diff.type}
+                    </Badge>
+                    <Badge className={`text-[10px] ${
+                      diff.severity === 'critical' ? 'bg-rose-500/20 text-rose-400' :
+                      diff.severity === 'warning' ? 'bg-amber-500/20 text-amber-400' :
+                      'bg-blue-500/20 text-blue-400'
+                    } border-none`}>
+                      {diff.severity}
+                    </Badge>
+                  </div>
+                  <h4 className="font-bold text-sm">{diff.label}</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground/60">In README</span>
+                      <div className="p-2 rounded bg-background border border-border/20 text-xs font-mono line-clamp-1 italic text-muted-foreground">
+                        {diff.readmeValue || "Not found"}
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-emerald-500/60">In Repository</span>
+                      <div className="p-2 rounded bg-emerald-500/5 border border-emerald-500/20 text-xs font-mono font-bold line-clamp-1">
+                        {diff.repoValue}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+
+          <DialogFooter className="p-6 border-t border-border/40 bg-secondary/5">
+            <Button variant="ghost" onClick={() => setIsFreshnessModalOpen(false)}>Ignore</Button>
+            <Button className="bg-primary hover:bg-primary/90" onClick={handleUpdateWithAi} disabled={isAiLoading}>
+              {isAiLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+              Update README with AI
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  function DiffModal() {
+    return (
+      <Dialog open={isDiffModalOpen} onOpenChange={setIsDiffModalOpen}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0">
+          <DialogHeader className="p-6 pb-2">
+            <div className="flex items-center gap-2 mb-2">
+              <History className="h-4 w-4 text-primary" />
+              <span className="text-xs font-bold uppercase tracking-widest text-primary">Preview AI Updates</span>
+            </div>
+            <DialogTitle className="text-xl">Review Changes before Saving</DialogTitle>
+            <DialogDescription>
+              AI has updated the README to reflect latest repository changes while preserving your custom content.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 grid grid-cols-2 gap-0 overflow-hidden border-y border-border/40">
+            <div className="flex flex-col overflow-hidden border-r border-border/40">
+              <div className="bg-secondary/20 p-2 text-[10px] font-bold uppercase tracking-widest border-b border-border/40">Original</div>
+              <ScrollArea className="flex-1 p-4 bg-background font-mono text-[11px] leading-relaxed opacity-60">
+                <pre className="whitespace-pre-wrap">{markdown}</pre>
+              </ScrollArea>
+            </div>
+            <div className="flex flex-col overflow-hidden">
+              <div className="bg-emerald-500/10 p-2 text-[10px] font-bold uppercase tracking-widest border-b border-border/40 text-emerald-500">Proposed Update</div>
+              <ScrollArea className="flex-1 p-4 bg-emerald-500/[0.02] font-mono text-[11px] leading-relaxed">
+                <pre className="whitespace-pre-wrap">{pendingUpdatedMarkdown}</pre>
+              </ScrollArea>
+            </div>
+          </div>
+
+          <DialogFooter className="p-6 bg-secondary/5">
+            <Button variant="ghost" onClick={() => setIsDiffModalOpen(false)}>Discard</Button>
+            <Button className="bg-primary hover:bg-primary/90" onClick={applyAiUpdate}>
+              <Check className="mr-2 h-4 w-4" />
+              Apply Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   function ExportModal() {
     return (
