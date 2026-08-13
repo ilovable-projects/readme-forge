@@ -31,10 +31,6 @@ export const fetchUserRepositories = createServerFn({ method: "GET" })
       throw new Error("User not found");
     }
 
-    // We assume the user is logged in via GitHub or has a GitHub identity
-    // Supabase doesn't directly expose the provider token in the user object easily via admin API
-    // but we can try to get it if it's stored in identities or if we have a global GITHUB_TOKEN for public repos
-    
     // Public repositories only: a token is optional (used purely to raise rate limits).
     const rawToken = process.env['GITHUB_TOKEN'];
     const GITHUB_TOKEN = (rawToken && rawToken !== "undefined" && rawToken !== "null" && rawToken.length > 5) ? rawToken : undefined;
