@@ -20,40 +20,36 @@ const editSectionSchema = z.object({
 
 export const editReadmeSection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => editSectionSchema.parse(data))
+  .validator((data) => editSectionSchema.parse(data))
   .handler(async ({ data, context }) => {
-    const { documentId, sectionTitle, currentContent, action, context: techContext } = data;
-    const userId = context.userId;
-
-    // In a real implementation, this would call an AI model (e.g., OpenAI, Anthropic via Lovable AI Gateway)
-    // For now, we simulate the AI transformation while preserving factual accuracy as requested.
+    const { sectionTitle, currentContent, action, context: techContext } = data;
     
-    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate AI latency
+    // Simulate AI latency
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
     let newContent = currentContent;
-    const prompt = `Action: ${action} on section "${sectionTitle}"`;
     
-    // Mock transformations that maintain structure but change tone/style
     switch (action) {
       case "improve":
         newContent = currentContent.replace(/^#+ (.*)/m, (match) => `${match}\n\nThis section has been enhanced for better clarity and impact.`);
         break;
       case "simplify":
-        newContent = currentContent.split('\n').map(line => line.length > 50 ? line.substring(0, 50) + '...' : line).join('\n');
+        newContent = currentContent.split('\n').map(line => line.length > 60 ? line.substring(0, 60) + '...' : line).join('\n');
         break;
       case "professionalize":
-        newContent = `### ${sectionTitle}\n\nThe following technical specifications and procedural guidelines are provided to ensure optimal integration and performance.\n\n${currentContent}`;
+        newContent = `### ${sectionTitle}\n\nThe following technical specifications and procedural guidelines are provided to ensure optimal integration and performance.\n\n${currentContent.replace(/### .*\n/, '')}`;
         break;
       case "fix_grammar":
-        newContent = currentContent.replace(/dont/g, "don't").replace(/wont/g, "won't"); // Simple mock fix
+        newContent = currentContent.replace(/dont/g, "don't").replace(/wont/g, "won't").replace(/its /g, "it's ");
         break;
       case "more_technical":
-        if (techContext?.['language']?.value) {
-          newContent = `${currentContent}\n\n*Implementation Details: Developed using ${techContext['language'].value} architectural patterns.*`;
+        const lang = techContext?.['language'] as any;
+        if (lang?.value) {
+          newContent = `${currentContent}\n\n*Technical Note: This module implements patterns specific to ${lang.value} development.*`;
         }
         break;
       case "beginner_friendly":
-        newContent = `> **Note for beginners:** This section explains the basic concepts.\n\n${currentContent}`;
+        newContent = `> **Note for beginners:** This section explains the basic concepts of ${sectionTitle.toLowerCase()}.\n\n${currentContent}`;
         break;
     }
 
