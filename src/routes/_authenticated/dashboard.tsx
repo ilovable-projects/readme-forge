@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { 
   LayoutDashboard, 
   Plus, 
@@ -71,6 +72,7 @@ const RECENT_REPOS = [
 function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const { data: repositories, isLoading: reposLoading } = useRepositories();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -241,7 +243,13 @@ function DashboardPage() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold tracking-tight">Recent Repositories</h2>
-              <Button variant="ghost" size="sm" className="text-muted-foreground">View all</Button>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => queryClient.invalidateQueries({ queryKey: ['repositories'] })}>
+                  <RefreshCw className={`h-4 w-4 mr-2 ${reposLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+                <Button variant="ghost" size="sm" className="text-muted-foreground">View all</Button>
+              </div>
             </div>
             <div className="grid gap-4">
               {reposLoading ? (
