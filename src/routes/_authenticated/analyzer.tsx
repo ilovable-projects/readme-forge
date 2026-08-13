@@ -1,4 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { z } from "zod";
 import { useState, useEffect } from "react";
 import { 
   Search, 
@@ -28,7 +29,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { RepositorySelector } from "@/components/analyzer/repository-selector";
 import { toast } from "sonner";
 
+const analyzerSearchSchema = z.object({
+  url: z.string().optional(),
+});
+
 export const Route = createFileRoute("/_authenticated/analyzer")({
+  validateSearch: (search) => analyzerSearchSchema.parse(search),
   component: AnalyzerPage,
 });
 
@@ -43,19 +49,26 @@ const PROGRESS_STEPS = [
 ];
 
 function AnalyzerPage() {
+  const { url: initialUrl } = useSearch({ from: '/_authenticated/analyzer' });
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState("");
-  const [repoUrl, setRepoUrl] = useState("");
+  const [repoUrl, setRepoUrl] = useState(initialUrl || "");
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [githubRepos, setGithubRepos] = useState<GitHubRepository[]>([]);
   const [isLoadingRepos, setIsLoadingRepos] = useState(false);
-  const [showUrlInput, setShowUrlInput] = useState(false);
+  const [showUrlInput, setShowUrlInput] = useState(!!initialUrl);
   
   const { user } = useAuth();
   const analyzeRepo = useAnalyzeRepository();
   const navigate = useNavigate();
   const getReposFn = useServerFn(fetchUserRepositories);
+
+  useEffect(() => {
+    if (initialUrl) {
+      startAnalysis();
+    }
+  }, [initialUrl]);
 
   useEffect(() => {
     loadGithubRepos();
