@@ -172,7 +172,9 @@ function EditorPage() {
   const handleUndo = () => {
     if (history.length > 0) {
       const prev = history[history.length - 1];
-      setMarkdown(prev);
+      if (prev !== undefined) {
+        setMarkdown(prev);
+      }
       setHistory(prevHistory => prevHistory.slice(0, -1));
       toast.info("Changes reverted");
     }
@@ -184,7 +186,7 @@ function EditorPage() {
     let endIndex = -1;
 
     for (let i = 0; i < lines.length; i++) {
-      if (lines[i].toLowerCase().includes(`## ${sectionTitle.toLowerCase()}`)) {
+      if (lines[i]?.toLowerCase().includes(`## ${sectionTitle.toLowerCase()}`)) {
         startIndex = i;
         break;
       }
@@ -193,7 +195,7 @@ function EditorPage() {
     if (startIndex === -1) return null;
 
     for (let i = startIndex + 1; i < lines.length; i++) {
-      if (lines[i] && lines[i].startsWith('## ')) {
+      if (lines[i]?.startsWith('## ')) {
         endIndex = i;
         break;
       }
