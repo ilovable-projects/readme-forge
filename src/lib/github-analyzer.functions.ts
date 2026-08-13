@@ -183,7 +183,7 @@ export const analyzeRepository = createServerFn({ method: "POST" })
           stars: result.repository.stars,
           forks: result.repository.forks,
           is_private: result.repository.is_private,
-          metadata: result.repository.metadata,
+          metadata: result.repository.metadata as any,
           user_id: userId
         }])
         .select()
