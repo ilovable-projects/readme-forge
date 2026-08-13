@@ -14,7 +14,8 @@ import {
   Code2 as Github, 
   RefreshCw, 
   Plus,
-  GitBranch
+  GitBranch,
+  ArrowLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
