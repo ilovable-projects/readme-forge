@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { 
   ShieldCheck, 
   AlertTriangle, 
@@ -9,19 +9,30 @@ import {
   BarChart3,
   Search,
   Zap,
-  Shield
+  Shield,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { z } from "zod";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-data";
+import { toast } from "sonner";
+
+const healthSearchSchema = z.object({
+  documentId: z.string().optional(),
+});
 
 export const Route = createFileRoute("/health/")({
+  validateSearch: (search) => healthSearchSchema.parse(search),
   component: HealthPage,
 });
 
-const CATEGORIES = [
+const DEFAULT_CATEGORIES = [
   { name: "Overview", score: 95 },
   { name: "Features", score: 80 },
   { name: "Installation", score: 100 },
@@ -32,7 +43,7 @@ const CATEGORIES = [
   { name: "Accuracy", score: 100 }
 ];
 
-const ISSUES = [
+const DEFAULT_ISSUES = [
   { 
     severity: "critical", 
     title: "Missing License Information", 
@@ -54,13 +65,68 @@ const ISSUES = [
 ];
 
 function HealthPage() {
+  const { documentId } = useSearch({ from: '/health/' });
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(!!documentId);
+  const [score, setScore] = useState<any>(null);
+
+  useEffect(() => {
+    if (documentId && user) {
+      fetchScore();
+    }
+  }, [documentId, user]);
+
+  const fetchScore = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('readme_scores')
+        .select('*')
+        .eq('readme_document_id', documentId!)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data) setScore(data);
+    } catch (error: any) {
+      toast.error("Failed to load health report: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const displayScore = score?.overall_score || 87;
+  
+  const categories = score ? [
+    { name: "Overview", score: score.overview_score || 0 },
+    { name: "Features", score: score.features_score || 0 },
+    { name: "Installation", score: score.installation_score || 0 },
+    { name: "Usage", score: score.usage_score || 0 },
+    { name: "Tech Stack", score: score.tech_stack_score || 0 },
+    { name: "Project Structure", score: score.project_structure_score || 0 },
+    { name: "Testing", score: score.testing_score || 0 },
+    { name: "Accuracy", score: score.accuracy_score || 0 }
+  ] : DEFAULT_CATEGORIES;
+
+  const issues = score?.issues || DEFAULT_ISSUES;
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Analyzing Health...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="mx-auto max-w-5xl space-y-8">
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-4">
              <Button variant="ghost" size="sm" asChild>
-                <Link to="/editor">
+                <Link to="/editor" search={{ repositoryId: score?.repository_id || "" }}>
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to Editor
                 </Link>
@@ -80,10 +146,10 @@ function HealthPage() {
                 <div className="relative flex items-center justify-center">
                    <svg className="h-40 w-40 transform -rotate-90">
                       <circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-secondary" />
-                      <circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={440} strokeDashoffset={440 - (440 * 87) / 100} className="text-primary" />
+                      <circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={440} strokeDashoffset={440 - (440 * displayScore) / 100} className="text-primary" />
                    </svg>
                    <div className="absolute flex flex-col items-center">
-                      <span className="text-5xl font-extrabold tracking-tighter">87</span>
+                      <span className="text-5xl font-extrabold tracking-tighter">{displayScore}</span>
                       <span className="text-xs text-muted-foreground uppercase font-bold tracking-widest">/ 100</span>
                    </div>
                 </div>
@@ -91,18 +157,24 @@ function HealthPage() {
              
              <div className="col-span-2 p-8 space-y-6">
                 <div>
-                   <h3 className="text-xl font-bold mb-2">Excellent Documentation!</h3>
-                   <p className="text-muted-foreground text-sm leading-relaxed">Your README is in the top 5% of projects we've analyzed. It covers most essential categories and provides a clear technical overview of the project.</p>
+                   <h3 className="text-xl font-bold mb-2">
+                     {displayScore >= 90 ? "Excellent Documentation!" : 
+                      displayScore >= 70 ? "Good Foundation" : "Needs Improvement"}
+                   </h3>
+                   <p className="text-muted-foreground text-sm leading-relaxed">
+                     {displayScore >= 90 ? "Your README is in the top 5% of projects we've analyzed. It covers most essential categories and provides a clear technical overview of the project." :
+                      "We've identified several areas where your documentation could be strengthened to better serve your project's users and contributors."}
+                   </p>
                 </div>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                    <div className="space-y-1">
                       <span className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Readability</span>
-                      <p className="text-lg font-bold">High</p>
+                      <p className="text-lg font-bold">{displayScore >= 80 ? "High" : "Medium"}</p>
                    </div>
                    <div className="space-y-1">
                       <span className="text-xs text-muted-foreground font-bold uppercase tracking-widest">SEO</span>
-                      <p className="text-lg font-bold">Optimal</p>
+                      <p className="text-lg font-bold">{displayScore >= 85 ? "Optimal" : "Basic"}</p>
                    </div>
                    <div className="space-y-1">
                       <span className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Factual</span>
@@ -122,7 +194,7 @@ function HealthPage() {
            <div className="lg:col-span-2 space-y-6">
               <h2 className="text-xl font-bold tracking-tight">Category Breakdown</h2>
               <div className="grid gap-4">
-                 {CATEGORIES.map((cat, i) => (
+                 {categories.map((cat, i) => (
                     <div key={i} className="p-4 rounded-xl border border-border/40 bg-card/30 flex items-center justify-between">
                        <div className="flex-1 space-y-2 pr-8">
                           <div className="flex justify-between text-sm mb-1">
@@ -143,7 +215,7 @@ function HealthPage() {
            <div className="space-y-6">
               <h2 className="text-xl font-bold tracking-tight">Action Items</h2>
               <div className="space-y-4">
-                 {ISSUES.map((issue, i) => (
+                 {issues.map((issue: any, i: number) => (
                     <Card key={i} className={`border-l-4 ${
                        issue.severity === 'critical' ? 'border-l-rose-500' : 
                        issue.severity === 'warning' ? 'border-l-amber-500' : 

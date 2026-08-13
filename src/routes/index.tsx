@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -48,10 +48,10 @@ function LandingPage() {
           </div>
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm" asChild>
-              <a href="/dashboard">Log in</a>
+              <Link to="/auth">Log in</Link>
             </Button>
             <Button size="sm" className="rounded-full shadow-lg shadow-primary/20" asChild>
-              <a href="/dashboard">Get Started</a>
+              <Link to="/auth">Get Started</Link>
             </Button>
           </div>
         </div>
@@ -85,10 +85,10 @@ function LandingPage() {
                   />
                 </div>
                 <Button size="lg" className="h-12 rounded-lg px-8 shadow-xl shadow-primary/20 transition-all hover:translate-y-[-2px] hover:shadow-2xl hover:shadow-primary/30" asChild>
-                  <a href="/analyzer">
+                  <Link to="/auth">
                     Analyze Repository
                     <ArrowRight className="ml-2 h-4 w-4" />
-                  </a>
+                  </Link>
                 </Button>
               </div>
               
@@ -292,7 +292,7 @@ function LandingPage() {
             <h2 className="mb-6 text-3xl font-bold tracking-tight sm:text-4xl">Ready to forge a better README?</h2>
             <p className="mx-auto mb-10 max-w-2xl text-muted-foreground">Join thousands of developers using READMEForge to automate their documentation.</p>
             <Button size="lg" className="h-12 rounded-lg px-10 shadow-xl shadow-primary/20" asChild>
-              <a href="/dashboard">Get Started Now</a>
+              <Link to="/auth">Get Started Now</Link>
             </Button>
           </div>
         </section>

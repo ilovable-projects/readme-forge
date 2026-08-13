@@ -6,8 +6,11 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  useNavigate,
+  useLocation,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -116,10 +119,30 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const publicPaths = ['/', '/auth', '/auth/callback'];
+      const isPublicPath = publicPaths.includes(location.pathname);
+
+      if (event === 'SIGNED_OUT') {
+        if (!isPublicPath) {
+          navigate({ to: '/auth' });
+        }
+      } else if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+        if (location.pathname === '/auth') {
+          navigate({ to: '/dashboard' });
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate, location.pathname]);
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>
   );

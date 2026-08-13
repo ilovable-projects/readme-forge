@@ -91,51 +91,66 @@ export type Database = {
           configuration_score: number | null
           contribution_score: number | null
           created_at: string
+          deployment_score: number | null
           documentation_score: number | null
           features_score: number | null
           id: string
           installation_score: number | null
           issues: Json | null
+          license_score: number | null
           overall_score: number
           overview_score: number | null
+          project_structure_score: number | null
           readme_document_id: string
           suggestions: Json | null
           tech_stack_score: number | null
+          testing_score: number | null
           usage_score: number | null
+          warnings: Json | null
         }
         Insert: {
           accuracy_score?: number | null
           configuration_score?: number | null
           contribution_score?: number | null
           created_at?: string
+          deployment_score?: number | null
           documentation_score?: number | null
           features_score?: number | null
           id?: string
           installation_score?: number | null
           issues?: Json | null
+          license_score?: number | null
           overall_score: number
           overview_score?: number | null
+          project_structure_score?: number | null
           readme_document_id: string
           suggestions?: Json | null
           tech_stack_score?: number | null
+          testing_score?: number | null
           usage_score?: number | null
+          warnings?: Json | null
         }
         Update: {
           accuracy_score?: number | null
           configuration_score?: number | null
           contribution_score?: number | null
           created_at?: string
+          deployment_score?: number | null
           documentation_score?: number | null
           features_score?: number | null
           id?: string
           installation_score?: number | null
           issues?: Json | null
+          license_score?: number | null
           overall_score?: number
           overview_score?: number | null
+          project_structure_score?: number | null
           readme_document_id?: string
           suggestions?: Json | null
           tech_stack_score?: number | null
+          testing_score?: number | null
           usage_score?: number | null
+          warnings?: Json | null
         }
         Relationships: [
           {
@@ -207,10 +222,12 @@ export type Database = {
           detected_languages: Json | null
           detected_scripts: Json | null
           environment_variables: Json | null
+          existing_readme: string | null
           id: string
           license: string | null
           project_structure: Json | null
           repository_id: string
+          updated_at: string | null
         }
         Insert: {
           analysis_data?: Json
@@ -220,10 +237,12 @@ export type Database = {
           detected_languages?: Json | null
           detected_scripts?: Json | null
           environment_variables?: Json | null
+          existing_readme?: string | null
           id?: string
           license?: string | null
           project_structure?: Json | null
           repository_id: string
+          updated_at?: string | null
         }
         Update: {
           analysis_data?: Json
@@ -233,10 +252,12 @@ export type Database = {
           detected_languages?: Json | null
           detected_scripts?: Json | null
           environment_variables?: Json | null
+          existing_readme?: string | null
           id?: string
           license?: string | null
           project_structure?: Json | null
           repository_id?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
