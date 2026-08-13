@@ -195,15 +195,15 @@ export const analyzeRepository = createServerFn({ method: "POST" })
         .from('repository_analyses')
         .insert([{
           repository_id: repoData.id,
-          detected_languages: result.analysis.detected_languages,
-          detected_frameworks: result.analysis.detected_frameworks,
-          detected_dependencies: result.analysis.detected_dependencies,
-          detected_scripts: result.analysis.detected_scripts,
-          project_structure: result.analysis.project_structure,
-          environment_variables: result.analysis.environment_variables,
+          detected_languages: result.analysis.detected_languages as any,
+          detected_frameworks: result.analysis.detected_frameworks as any,
+          detected_dependencies: result.analysis.detected_dependencies as any,
+          detected_scripts: result.analysis.detected_scripts as any,
+          project_structure: result.analysis.project_structure as any,
+          environment_variables: result.analysis.environment_variables as any,
           license: result.analysis.license,
           existing_readme: result.analysis.existing_readme,
-          analysis_data: result.analysis.analysis_data
+          analysis_data: result.analysis.analysis_data as any
         }]);
 
       if (analysisError) throw analysisError;
