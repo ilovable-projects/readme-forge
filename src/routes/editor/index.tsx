@@ -106,28 +106,43 @@ function EditorPage() {
 
     setIsGenerating(true);
     try {
-      // For V1, we create a structured template based on analysis data
-      // This will be replaced by a real AI call in the next iteration
-      const techStack = [...(analysis.detected_frameworks || []), ...(analysis.detected_languages || [])].join(", ");
-      const scripts = Object.keys(analysis.detected_scripts || {}).join(", ");
+      const data = analysis.analysis_data;
+      // If analysis_data doesn't have the new structure yet, fallback to basic detection
+      const techStack = data.frameworks 
+        ? [...data.frameworks.value, data.language.value].filter(Boolean).join(", ")
+        : [...(analysis.detected_frameworks || []), ...(analysis.detected_languages || [])].join(", ");
       
       let content = `# ${analysis.repository_id || 'Project'}\n\n`;
       content += `## Overview\nA modern project built with ${techStack}.\n\n`;
       
-      if (analysis.detected_frameworks?.length) {
+      if (data.frameworks?.value.length) {
+        content += `## Tech Stack\n${data.frameworks.value.map((f: string) => `- ${f}`).join('\n')}\n\n`;
+      } else if (analysis.detected_frameworks?.length) {
         content += `## Tech Stack\n${analysis.detected_frameworks.map((f: string) => `- ${f}`).join('\n')}\n\n`;
       }
 
-      if (scripts) {
-        content += `## Available Scripts\nIn the project directory, you can run:\n\n${Object.keys(analysis.detected_scripts).map(s => `### \`npm run ${s}\`\n${analysis.detected_scripts[s]}`).join('\n\n')}\n\n`;
+      if (data.commands) {
+        content += `## Getting Started\n\n`;
+        if (data.packageManager?.value) {
+          content += `This project uses **${data.packageManager.value}** as its package manager.\n\n`;
+        }
+        
+        content += `### Commands\n\n`;
+        if (data.commands.development?.value) content += `- **Development**: \`${data.commands.development.value}\`\n`;
+        if (data.commands.build?.value) content += `- **Build**: \`${data.commands.build.value}\`\n`;
+        if (data.commands.test?.value) content += `- **Test**: \`${data.commands.test.value}\`\n`;
+        if (data.commands.start?.value) content += `- **Start**: \`${data.commands.start.value}\`\n`;
+        content += `\n`;
       }
 
-      if (analysis.environment_variables?.length) {
-        content += `## Environment Variables\nTo run this project, you will need to add the following environment variables to your .env file:\n\n${analysis.environment_variables.map((v: string) => `- \`${v}\``).join('\n')}\n\n`;
+      const envVars = data.envVars?.value || analysis.environment_variables;
+      if (envVars?.length) {
+        content += `## Environment Variables\nTo run this project, you will need to add the following environment variables to your .env file:\n\n${envVars.map((v: string) => `- \`${v}\``).join('\n')}\n\n`;
       }
 
-      if (analysis.license) {
-        content += `## License\nThis project is licensed under the ${analysis.license} License.\n`;
+      const license = data.license?.value || analysis.license;
+      if (license) {
+        content += `## License\nThis project is licensed under the ${license} License.\n`;
       }
 
       setMarkdown(content);
@@ -328,26 +343,49 @@ function EditorPage() {
         </main>
         
         {/* Right Info Sidebar (Optional) */}
-        <aside className="w-64 border-l border-border/40 bg-card/20 hidden xl:block">
+        <aside className="w-80 border-l border-border/40 bg-card/20 hidden xl:block overflow-y-auto">
            <div className="p-4 space-y-6">
               <div>
                  <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">Analysis Context</h3>
                  <div className="space-y-4">
-                    {analysis?.detected_frameworks?.length > 0 && (
-                      <div>
-                        <p className="text-[10px] uppercase text-muted-foreground mb-1">Frameworks</p>
-                        <div className="flex flex-wrap gap-1">
-                          {analysis.detected_frameworks.map((f: string) => (
-                            <Badge key={f} variant="secondary" className="text-[9px]">{f}</Badge>
-                          ))}
-                        </div>
-                      </div>
+                    {analysis?.analysis_data?.language && (
+                      <AnalysisItem 
+                        label="Primary Language" 
+                        value={analysis.analysis_data.language.value} 
+                        confidence={analysis.analysis_data.language.confidence} 
+                      />
                     )}
-                    {analysis?.license && (
-                      <div>
-                        <p className="text-[10px] uppercase text-muted-foreground mb-1">License</p>
-                        <Badge variant="outline" className="text-[9px]">{analysis.license}</Badge>
-                      </div>
+
+                    {analysis?.analysis_data?.frameworks && (
+                      <AnalysisItem 
+                        label="Frameworks" 
+                        value={analysis.analysis_data.frameworks.value.join(", ")} 
+                        confidence={analysis.analysis_data.frameworks.confidence} 
+                      />
+                    )}
+
+                    {analysis?.analysis_data?.packageManager && (
+                      <AnalysisItem 
+                        label="Package Manager" 
+                        value={analysis.analysis_data.packageManager.value} 
+                        confidence={analysis.analysis_data.packageManager.confidence} 
+                      />
+                    )}
+
+                    {analysis?.analysis_data?.license && (
+                      <AnalysisItem 
+                        label="License" 
+                        value={analysis.analysis_data.license.value} 
+                        confidence={analysis.analysis_data.license.confidence} 
+                      />
+                    )}
+
+                    {analysis?.analysis_data?.envVars && (
+                      <AnalysisItem 
+                        label="Env Vars" 
+                        value={analysis.analysis_data.envVars.value.length > 0 ? `${analysis.analysis_data.envVars.value.length} detected` : "None found"} 
+                        confidence={analysis.analysis_data.envVars.confidence} 
+                      />
                     )}
                  </div>
                  <Button variant="link" size="sm" className="mt-4 h-auto p-0 text-primary" asChild>
@@ -358,19 +396,11 @@ function EditorPage() {
               <Separator />
 
               <div>
-                 <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">Quick Suggestions</h3>
+                 <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">Documentation Status</h3>
                  <div className="space-y-3">
-                    <div className="flex gap-2 p-2 rounded-lg bg-amber-500/5 border border-amber-500/10">
-                       <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
-                       <div className="text-xs">
-                          <p className="font-bold text-amber-200">Missing License</p>
-                          <p className="text-amber-200/70">Adding a license is recommended for open source.</p>
-                       </div>
-                    </div>
-                    <div className="flex gap-2 p-2 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
-                       <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-                       <p className="text-xs text-emerald-200/70">Project structure detected and documented.</p>
-                    </div>
+                    <StatusBadge label="README.md" exists={analysis?.analysis_data?.documentationStatus?.readme} />
+                    <StatusBadge label="CONTRIBUTING.md" exists={analysis?.analysis_data?.documentationStatus?.contributing} />
+                    <StatusBadge label="LICENSE" exists={analysis?.analysis_data?.documentationStatus?.license} />
                  </div>
               </div>
            </div>
@@ -378,4 +408,54 @@ function EditorPage() {
       </div>
     </div>
   );
+
+function AnalysisItem({ label, value, confidence }: { label: string, value: string | null, confidence: 'verified' | 'likely' | 'unknown' }) {
+  if (confidence === 'unknown' && !value) {
+    return (
+      <div className="flex items-center justify-between p-2 rounded-lg bg-secondary/20 border border-dashed border-border/60">
+        <div className="text-[10px] uppercase text-muted-foreground">{label}</div>
+        <Badge variant="outline" className="text-[9px] text-muted-foreground opacity-50">Unknown</Badge>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`p-2 rounded-lg border ${
+      confidence === 'verified' ? 'bg-emerald-500/5 border-emerald-500/20' : 
+      confidence === 'likely' ? 'bg-amber-500/5 border-amber-500/20' : 
+      'bg-secondary/20 border-border/40'
+    }`}>
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-[10px] uppercase text-muted-foreground">{label}</p>
+        <Badge className={`text-[8px] h-3.5 px-1 ${
+          confidence === 'verified' ? 'bg-emerald-500/20 text-emerald-400 border-none' : 
+          confidence === 'likely' ? 'bg-amber-500/20 text-amber-400 border-none' : 
+          'bg-muted text-muted-foreground border-none'
+        }`}>
+          {confidence}
+        </Badge>
+      </div>
+      <p className="text-xs font-bold truncate">{value || "Not found"}</p>
+    </div>
+  );
+}
+
+function StatusBadge({ label, exists }: { label: string, exists: boolean }) {
+  return (
+    <div className={`flex items-center gap-2 p-2 rounded-lg border ${
+      exists ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-rose-500/5 border-rose-500/20'
+    }`}>
+      {exists ? (
+        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+      ) : (
+        <AlertCircle className="h-3.5 w-3.5 text-rose-500" />
+      )}
+      <span className={`text-xs ${exists ? 'text-emerald-200/80' : 'text-rose-200/80'}`}>{label}</span>
+      <span className="ml-auto text-[9px] uppercase font-bold tracking-tighter opacity-50">
+        {exists ? "Detected" : "Missing"}
+      </span>
+    </div>
+  );
+}
+
 }
