@@ -16,6 +16,10 @@ export const analyzeRepository = createServerFn({ method: "POST" })
     const owner = parts[0];
     const repo = parts[1];
 
+    if (!owner || !repo) {
+      throw new Error("Invalid GitHub repository URL format.");
+    }
+
     try {
       // 1. Fetch Repository Metadata
       const { data: repository } = await octokit.rest.repos.get({
@@ -31,7 +35,7 @@ export const analyzeRepository = createServerFn({ method: "POST" })
       const { data: tree } = await octokit.rest.git.getTree({
         owner,
         repo,
-        tree_sha: repository.default_branch,
+        tree_sha: repository.default_branch || 'main',
         recursive: "1",
       });
 
@@ -136,7 +140,7 @@ export const analyzeRepository = createServerFn({ method: "POST" })
           is_private: repository.private,
           metadata: { 
             analyzed: true,
-            topics: repository.topics,
+            topics: repository.topics || [],
           }
         },
         analysis: {
