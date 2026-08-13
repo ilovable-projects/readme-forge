@@ -27,6 +27,7 @@ import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-data";
 import { toast } from "sonner";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export const Route = createFileRoute("/templates/")({
   component: TemplatesPage,
@@ -306,5 +307,3 @@ function TemplatesPage() {
     </div>
   );
 }
-
-import { ScrollArea } from "@/components/ui/scroll-area";
