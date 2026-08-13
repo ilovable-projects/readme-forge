@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  GithubIcon, 
+  Github, 
   Search, 
   FileText, 
   CheckCircle2, 
@@ -78,7 +78,7 @@ function LandingPage() {
               
               <div className="mx-auto mb-12 flex max-w-2xl flex-col gap-3 sm:flex-row">
                 <div className="relative flex-1">
-                  <GithubIcon className="absolute top-3 left-4 h-5 w-5 text-muted-foreground" />
+                  <Github className="absolute top-3 left-4 h-5 w-5 text-muted-foreground" />
                   <Input 
                     placeholder="https://github.com/username/repo" 
                     className="h-12 border-border/50 bg-secondary/30 pl-11 ring-offset-background focus-visible:ring-primary/30"
