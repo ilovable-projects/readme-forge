@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AnalyzerIndexRouteImport } from './routes/analyzer/index'
+import { Route as AuthIndexRouteImport } from './routes/auth/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as EditorIndexRouteImport } from './routes/editor/index'
 import { Route as HealthIndexRouteImport } from './routes/health/index'
@@ -25,6 +26,11 @@ const IndexRoute = IndexRouteImport.update({
 const AnalyzerIndexRoute = AnalyzerIndexRouteImport.update({
   id: '/analyzer/',
   path: '/analyzer/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthIndexRoute = AuthIndexRouteImport.update({
+  id: '/auth/',
+  path: '/auth/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
@@ -56,6 +62,7 @@ const TemplatesIndexRoute = TemplatesIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analyzer/': typeof AnalyzerIndexRoute
+  '/auth/': typeof AuthIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/editor/': typeof EditorIndexRoute
   '/health/': typeof HealthIndexRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analyzer': typeof AnalyzerIndexRoute
+  '/auth': typeof AuthIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/editor': typeof EditorIndexRoute
   '/health': typeof HealthIndexRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/analyzer/': typeof AnalyzerIndexRoute
+  '/auth/': typeof AuthIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/editor/': typeof EditorIndexRoute
   '/health/': typeof HealthIndexRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/analyzer/'
+    | '/auth/'
     | '/dashboard/'
     | '/editor/'
     | '/health/'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/analyzer'
+    | '/auth'
     | '/dashboard'
     | '/editor'
     | '/health'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/analyzer/'
+    | '/auth/'
     | '/dashboard/'
     | '/editor/'
     | '/health/'
@@ -114,6 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyzerIndexRoute: typeof AnalyzerIndexRoute
+  AuthIndexRoute: typeof AuthIndexRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   EditorIndexRoute: typeof EditorIndexRoute
   HealthIndexRoute: typeof HealthIndexRoute
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/analyzer'
       fullPath: '/analyzer/'
       preLoaderRoute: typeof AnalyzerIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/': {
+      id: '/auth/'
+      path: '/auth'
+      fullPath: '/auth/'
+      preLoaderRoute: typeof AuthIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/': {
@@ -178,6 +198,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyzerIndexRoute: AnalyzerIndexRoute,
+  AuthIndexRoute: AuthIndexRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   EditorIndexRoute: EditorIndexRoute,
   HealthIndexRoute: HealthIndexRoute,
