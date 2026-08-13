@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState } from "react";
 
-export const Route = createFileRoute("/editor")({
+export const Route = createFileRoute("/editor/")({
   component: EditorPage,
 });
 
