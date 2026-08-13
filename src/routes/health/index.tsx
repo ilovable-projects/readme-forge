@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
+import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
 import { 
   ShieldCheck, 
   AlertTriangle, 
@@ -10,7 +10,8 @@ import {
   Search,
   Zap,
   Shield,
-  Loader2
+  Loader2,
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -67,6 +68,7 @@ const DEFAULT_ISSUES = [
 
 function HealthPage() {
   const { documentId, repositoryId } = useSearch({ from: '/health/' });
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(!!documentId || !!repositoryId);
   const [score, setScore] = useState<any>(null);
@@ -141,7 +143,7 @@ function HealthPage() {
     { name: "Accuracy", score: score.accuracy_score || 0 }
   ] : DEFAULT_CATEGORIES;
 
-  const issues = score?.issues || DEFAULT_ISSUES;
+  const issues = score?.issues || [];
 
   if (loading) {
     return (
@@ -247,34 +249,52 @@ function HealthPage() {
            <div className="space-y-6">
               <h2 className="text-xl font-bold tracking-tight">Action Items</h2>
               <div className="space-y-4">
-                 {issues.map((issue: any, i: number) => (
+                 {issues.length > 0 ? issues.map((issue: any, i: number) => (
                     <Card key={i} className={`border-l-4 ${
-                       issue.severity === 'critical' ? 'border-l-rose-500' : 
-                       issue.severity === 'warning' ? 'border-l-amber-500' : 
+                       issue.level === 'critical' ? 'border-l-rose-500' : 
+                       issue.level === 'warning' ? 'border-l-amber-500' : 
                        'border-l-blue-500'
                     } bg-card/50`}>
                        <CardHeader className="pb-2">
                           <div className="flex items-center gap-2 mb-1">
-                             {issue.severity === 'critical' ? <ShieldCheck className="h-4 w-4 text-rose-500" /> : 
-                              issue.severity === 'warning' ? <AlertTriangle className="h-4 w-4 text-amber-500" /> : 
+                             {issue.level === 'critical' ? <ShieldCheck className="h-4 w-4 text-rose-500" /> : 
+                              issue.level === 'warning' ? <AlertTriangle className="h-4 w-4 text-amber-500" /> : 
                               <Info className="h-4 w-4 text-blue-500" />}
                              <span className={`text-[10px] uppercase font-bold tracking-widest ${
-                                issue.severity === 'critical' ? 'text-rose-500' : 
-                                issue.severity === 'warning' ? 'text-amber-500' : 
+                                issue.level === 'critical' ? 'text-rose-500' : 
+                                issue.level === 'warning' ? 'text-amber-500' : 
                                 'text-blue-500'
-                             }`}>{issue.severity}</span>
+                             }`}>{issue.level}</span>
                           </div>
                           <CardTitle className="text-sm">{issue.title}</CardTitle>
                        </CardHeader>
                        <CardContent>
-                          <p className="text-xs text-muted-foreground mb-4 leading-relaxed">{issue.desc}</p>
-                          <Button variant="outline" size="sm" className="w-full text-xs h-8 bg-primary/5 hover:bg-primary/10 border-primary/20 text-primary">
+                          <p className="text-xs text-muted-foreground mb-4 leading-relaxed">{issue.explanation}</p>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full text-xs h-8 bg-primary/5 hover:bg-primary/10 border-primary/20 text-primary"
+                            onClick={() => {
+                              navigate({ 
+                                to: '/editor', 
+                                search: { repositoryId: repositoryId || score?.repository_id || "" } 
+                              });
+                              setTimeout(() => {
+                                toast.info(`Use AI to fix ${issue.category} in the editor.`);
+                              }, 100);
+                            }}
+                          >
                              <Zap className="mr-2 h-3 w-3" />
-                             {issue.fix}
+                             Fix with AI
                           </Button>
                        </CardContent>
                     </Card>
-                 ))}
+                 )) : (
+                   <div className="flex flex-col items-center justify-center p-8 text-center bg-card/20 rounded-xl border border-dashed border-border/40">
+                      <CheckCircle2 className="h-10 w-10 text-emerald-500/50 mb-3" />
+                      <p className="text-sm text-muted-foreground">No critical issues found. Your README is in great shape!</p>
+                   </div>
+                 )}
               </div>
            </div>
         </div>
