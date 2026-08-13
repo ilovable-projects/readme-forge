@@ -8,12 +8,12 @@ import {
   Code, 
   Terminal, 
   ShieldCheck, 
-  FileCheck,
-  Zap,
-  GitGraph,
-  Github,
-  RefreshCw,
-  Plus
+  FileCheck, 
+  Zap, 
+  GitGraph, 
+  Github, 
+  RefreshCw, 
+  Plus 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
