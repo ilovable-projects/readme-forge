@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 
-export const Route = createFileRoute("/templates")({
+export const Route = createFileRoute("/templates/")({
   component: TemplatesPage,
 });
 
