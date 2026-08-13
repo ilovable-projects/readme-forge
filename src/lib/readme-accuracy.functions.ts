@@ -3,6 +3,7 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { StructuredAnalysis } from "./github-analyzer.functions";
+import type { Json } from "@/integrations/supabase/types";
 
 export interface AccuracyIssue {
   id: string;
@@ -91,7 +92,6 @@ export const checkReadmeAccuracy = createServerFn({ method: "POST" })
          });
        }
     } else {
-      // Check if README claims a start script that doesn't exist
       if (lowerContent.includes('npm start') || lowerContent.includes('yarn start') || lowerContent.includes('pnpm start')) {
         critical_errors.push({
           id: 'missing-start-script',
@@ -105,7 +105,7 @@ export const checkReadmeAccuracy = createServerFn({ method: "POST" })
       }
     }
 
-    // 3. Frameworks & Versions
+    // 3. Frameworks
     if (analysis.frameworks?.value) {
       analysis.frameworks.value.forEach(fw => {
         if (lowerContent.includes(fw.toLowerCase())) {
@@ -150,7 +150,6 @@ export const checkReadmeAccuracy = createServerFn({ method: "POST" })
         });
     }
 
-    // Calculate Accuracy Score
     const totalIssuesCount = critical_errors.length + warnings.length + suggestions.length;
     const accuracy_score = totalIssuesCount === 0 ? 100 : Math.max(0, 100 - (critical_errors.length * 20 + warnings.length * 10 + suggestions.length * 5));
 
@@ -164,23 +163,16 @@ export const checkReadmeAccuracy = createServerFn({ method: "POST" })
       recommendations
     };
 
-    // Update the readme_scores record with accuracy data
-    // We try to fetch the score first to avoid overwriting if it doesn't exist yet
-    const { data: existingScore } = await supabaseAdmin
-      .from('readme_scores')
-      .select('metadata')
-      .eq('readme_document_id', documentId)
-      .maybeSingle();
-
     await supabaseAdmin
       .from('readme_scores')
       .update({
         accuracy_score,
-        metadata: {
-          ...(existingScore?.metadata as any || {}),
+        // We store the full report in 'suggestions' column as a JSON payload for simplicity
+        // given the schema constraints. 'issues' column is already used for general health.
+        suggestions: {
           accuracy_report: result,
           accuracy_calculated_at: new Date().toISOString()
-        } as any
+        } as Json
       })
       .eq('readme_document_id', documentId);
 
