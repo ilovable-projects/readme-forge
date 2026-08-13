@@ -25,6 +25,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth, useProfile } from "@/hooks/use-data";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
