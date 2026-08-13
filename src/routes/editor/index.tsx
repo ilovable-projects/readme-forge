@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { 
   FileText, 
   Eye, 
@@ -11,7 +11,8 @@ import {
   Save,
   ArrowLeft,
   ChevronRight,
-  Maximize2
+  Maximize2,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,9 +20,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-data";
+import { toast } from "sonner";
+import { z } from "zod";
+
+const editorSearchSchema = z.object({
+  repositoryId: z.string().optional(),
+});
 
 export const Route = createFileRoute("/editor/")({
+  validateSearch: (search) => editorSearchSchema.parse(search),
   component: EditorPage,
 });
 
@@ -31,32 +41,93 @@ const SECTIONS = [
   "Deployment", "Contributing", "License"
 ];
 
-const MOCK_MARKDOWN = `# READMEForge
+const MOCK_MARKDOWN = `# Project Title
 
-AI-powered GitHub README generator, analyzer, and documentation quality checker.
-
-## Features
-
-- **Repository Analysis**: Automatic detection of technologies, dependencies, and structure.
-- **AI Generation**: Accurate READMEs based on actual codebase.
-- **Health Score**: Quality evaluation and improvement suggestions.
-- **GitHub Preview**: Real-time rendering matching GitHub's style.
-
-## Installation
-
-\`\`\`bash
-npm install readme-forge
-\`\`\`
-
-## Usage
-
-1. Enter repository URL.
-2. Analyze and generate.
-3. Export your README.md.
+Enter your repository URL to generate a custom README.
 `;
 
 function EditorPage() {
+  const { repositoryId } = useSearch({ from: '/editor/' });
+  const { user } = useAuth();
   const [markdown, setMarkdown] = useState(MOCK_MARKDOWN);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(!!repositoryId);
+  const [documentId, setDocumentId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (repositoryId && user) {
+      loadDocument();
+    }
+  }, [repositoryId, user]);
+
+  const loadDocument = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('readme_documents')
+        .select('*')
+        .eq('repository_id', repositoryId)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      
+      if (data) {
+        setMarkdown(data.markdown_content);
+        setDocumentId(data.id);
+      }
+    } catch (error: any) {
+      toast.error("Failed to load document: " + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!user || !repositoryId) {
+      toast.error("You must be logged in and have a repository selected to save.");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      if (documentId) {
+        const { error } = await supabase
+          .from('readme_documents')
+          .update({ markdown_content: markdown, updated_at: new Date().toISOString() })
+          .eq('id', documentId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from('readme_documents')
+          .insert([{
+            user_id: user.id,
+            repository_id: repositoryId,
+            title: 'README.md',
+            markdown_content: markdown
+          }])
+          .select()
+          .single();
+        if (error) throw error;
+        setDocumentId(data.id);
+      }
+      toast.success("Changes saved successfully!");
+    } catch (error: any) {
+      toast.error("Failed to save: " + error.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Loading README...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen flex-col bg-background overflow-hidden">
@@ -64,7 +135,7 @@ function EditorPage() {
       <header className="flex h-14 items-center justify-between border-b border-border/40 bg-card/30 px-6 backdrop-blur-md">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/analyzer">
+            <Link to="/dashboard">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Link>
@@ -78,11 +149,22 @@ function EditorPage() {
         </div>
         
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => {
+            navigator.clipboard.writeText(markdown);
+            toast.success("Markdown copied to clipboard!");
+          }}>
             <Copy className="mr-2 h-4 w-4" />
             Copy
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => {
+            const blob = new Blob([markdown], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'README.md';
+            a.click();
+            URL.revokeObjectURL(url);
+          }}>
             <Download className="mr-2 h-4 w-4" />
             Download
           </Button>
@@ -159,7 +241,9 @@ function EditorPage() {
              <TabsContent value="preview" className="flex-1 m-0 p-0 overflow-y-auto">
                 <div className="mx-auto max-w-3xl p-8 prose prose-invert">
                    {/* GitHub-style rendering mockup */}
-                   <div dangerouslySetInnerHTML={{ __html: markdown.replace(/\n/g, '<br />') }} />
+                   <div className="whitespace-pre-wrap font-sans">
+                      {markdown}
+                   </div>
                 </div>
              </TabsContent>
 
@@ -173,8 +257,8 @@ function EditorPage() {
                     />
                   </div>
                   <div className="flex-1 overflow-y-auto p-6 bg-card/10">
-                     <div className="prose prose-invert prose-sm">
-                        <div dangerouslySetInnerHTML={{ __html: markdown.replace(/\n/g, '<br />') }} />
+                     <div className="prose prose-invert prose-sm whitespace-pre-wrap font-sans">
+                        {markdown}
                      </div>
                   </div>
                 </div>
@@ -195,7 +279,7 @@ function EditorPage() {
                     <div className="h-full bg-emerald-500" style={{ width: '87%' }} />
                  </div>
                  <Button variant="link" size="sm" className="mt-2 h-auto p-0 text-primary" asChild>
-                    <Link to="/health">View full report →</Link>
+                    <Link to="/health" search={{ documentId: documentId || undefined }}>View full report →</Link>
                  </Button>
               </div>
 
