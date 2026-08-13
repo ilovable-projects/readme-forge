@@ -8,9 +8,13 @@ import {
   Code, 
   Terminal, 
   ShieldCheck, 
-  FileCheck,
-  Zap,
-  GitGraph
+  FileCheck, 
+  Zap, 
+  GitGraph, 
+  Code2 as Github, 
+  RefreshCw, 
+  Plus,
+  GitBranch
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +22,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useAuth, useAnalyzeRepository } from "@/hooks/use-data";
+import { fetchUserRepositories, type GitHubRepository } from "@/lib/github.functions";
+import { useServerFn } from "@tanstack/react-start";
+import { RepositorySelector } from "@/components/analyzer/repository-selector";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/analyzer")({
@@ -40,10 +47,30 @@ function AnalyzerPage() {
   const [currentStep, setCurrentStep] = useState("");
   const [repoUrl, setRepoUrl] = useState("");
   const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [githubRepos, setGithubRepos] = useState<GitHubRepository[]>([]);
+  const [isLoadingRepos, setIsLoadingRepos] = useState(false);
+  const [showUrlInput, setShowUrlInput] = useState(false);
   
   const { user } = useAuth();
   const analyzeRepo = useAnalyzeRepository();
   const navigate = useNavigate();
+  const getReposFn = useServerFn(fetchUserRepositories);
+
+  useEffect(() => {
+    loadGithubRepos();
+  }, []);
+
+  const loadGithubRepos = async () => {
+    setIsLoadingRepos(true);
+    try {
+      const repos = await getReposFn();
+      setGithubRepos(repos);
+    } catch (error: any) {
+      console.error("Failed to fetch repos", error);
+    } finally {
+      setIsLoadingRepos(false);
+    }
+  };
 
   const startAnalysis = async () => {
     if (!repoUrl) {
@@ -102,6 +129,12 @@ function AnalyzerPage() {
     }
   };
 
+  const handleDirectAnalysis = async (url: string) => {
+    setRepoUrl(url);
+    const trigger = document.getElementById('start-analysis-trigger');
+    if (trigger) trigger.click();
+  };
+
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="mx-auto max-w-4xl space-y-8">
@@ -112,27 +145,70 @@ function AnalyzerPage() {
           </p>
         </div>
 
-        <Card className="border-border/40 bg-card/50 shadow-lg shadow-black/20">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <GitGraph className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input 
-                  placeholder="https://github.com/username/repo" 
-                  className="h-14 pl-10 border-border/50 text-lg bg-background/50 focus:bg-background"
-                  value={repoUrl}
-                  onChange={(e) => setRepoUrl(e.target.value)}
-                  disabled={analyzing}
-                  onKeyDown={(e) => e.key === 'Enter' && startAnalysis()}
-                />
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <GitBranch className="h-5 w-5" />
+            Import from GitHub
+          </h2>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setShowUrlInput(!showUrlInput)}
+            className="text-primary hover:text-primary hover:bg-primary/10"
+          >
+            {showUrlInput ? "Select from list" : "Enter URL manually"}
+            {showUrlInput ? <ArrowRight className="ml-2 h-4 w-4 rotate-180" /> : <Plus className="ml-2 h-4 w-4" />}
+          </Button>
+        </div>
+
+        {showUrlInput ? (
+          <Card className="border-border/40 bg-card/50 shadow-lg shadow-black/20 animate-in fade-in slide-in-from-top-4">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="relative flex-1">
+                  <GitGraph className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input 
+                    placeholder="https://github.com/username/repo" 
+                    className="h-14 pl-10 border-border/50 text-lg bg-background/50 focus:bg-background"
+                    value={repoUrl}
+                    onChange={(e) => setRepoUrl(e.target.value)}
+                    disabled={analyzing}
+                    onKeyDown={(e) => e.key === 'Enter' && startAnalysis()}
+                  />
+                </div>
+                <Button size="lg" className="h-14 px-8 text-lg font-bold transition-all hover:scale-[1.02] active:scale-[0.98]" onClick={startAnalysis} disabled={analyzing}>
+                  {analyzing ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Search className="mr-2 h-5 w-5" />}
+                  {analyzing ? "Analyzing..." : "Analyze Now"}
+                </Button>
               </div>
-              <Button size="lg" className="h-14 px-8 text-lg font-bold transition-all hover:scale-[1.02] active:scale-[0.98]" onClick={startAnalysis} disabled={analyzing}>
-                {analyzing ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Search className="mr-2 h-5 w-5" />}
-                {analyzing ? "Analyzing..." : "Analyze Now"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="animate-in fade-in slide-in-from-bottom-4">
+            <RepositorySelector 
+              repositories={githubRepos}
+              onSelect={(url) => {
+                setRepoUrl(url);
+                // The prompt says "Selecting a repository should start the existing repository analysis flow"
+                // but we need to pass the URL to startAnalysis, so we wrap it
+                setTimeout(() => {
+                  const submitBtn = document.getElementById('start-analysis-trigger');
+                  if (submitBtn) submitBtn.click();
+                  else {
+                    // Fallback to direct call if DOM element not found (though startAnalysis is in scope)
+                    // We'll use a hidden button or just call the function directly by passing the url
+                    handleDirectAnalysis(url);
+                  }
+                }, 100);
+              }}
+              isLoading={isLoadingRepos}
+              onRefresh={loadGithubRepos}
+            />
+          </div>
+        )}
+
+        {/* Hidden trigger for selection-based analysis */}
+        <button id="start-analysis-trigger" className="hidden" onClick={startAnalysis} />
 
         {analyzing && (
           <Card className="border-primary/20 bg-primary/5 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
