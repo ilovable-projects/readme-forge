@@ -86,8 +86,8 @@ function EditorPage() {
             <Download className="mr-2 h-4 w-4" />
             Download
           </Button>
-          <Button size="sm" className="bg-primary hover:bg-primary/90">
-            <Save className="mr-2 h-4 w-4" />
+          <Button size="sm" className="bg-primary hover:bg-primary/90" onClick={handleSave} disabled={isSaving}>
+            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
             Save Changes
           </Button>
         </div>
