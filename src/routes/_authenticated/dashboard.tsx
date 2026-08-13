@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { 
   LayoutDashboard, 
   Plus, 
@@ -13,7 +14,9 @@ import {
   Search,
   LogOut,
   Loader2,
-  Menu
+  Menu,
+  RefreshCw,
+  ArrowRight
 } from "lucide-react";
 import { 
   DropdownMenu,
@@ -26,7 +29,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth, useRepositories } from "@/hooks/use-data";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
@@ -71,6 +74,7 @@ const RECENT_REPOS = [
 function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const { data: repositories, isLoading: reposLoading } = useRepositories();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -241,18 +245,46 @@ function DashboardPage() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold tracking-tight">Recent Repositories</h2>
-              <Button variant="ghost" size="sm" className="text-muted-foreground">View all</Button>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => queryClient.invalidateQueries({ queryKey: ['repositories'] })}>
+                  <RefreshCw className={`h-4 w-4 mr-2 ${reposLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+                <Button variant="ghost" size="sm" className="text-muted-foreground">View all</Button>
+              </div>
             </div>
             <div className="grid gap-4">
               {reposLoading ? (
-                <div className="flex justify-center p-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
+                <>
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i} className="bg-card/30 border-border/40">
+                      <CardContent className="p-4 sm:p-6">
+                        <div className="flex items-center gap-4">
+                          <Skeleton className="h-10 w-10 rounded-lg" />
+                          <div className="space-y-2 flex-1">
+                            <Skeleton className="h-5 w-40" />
+                            <Skeleton className="h-4 w-60" />
+                          </div>
+                          <Skeleton className="h-8 w-24 hidden sm:block" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </>
               ) : repositories?.length === 0 ? (
-                <div className="text-center p-12 border border-dashed border-border/40 rounded-xl bg-card/20">
-                  <p className="text-muted-foreground">No repositories analyzed yet.</p>
-                  <Button variant="link" asChild>
-                    <Link to="/analyzer">Analyze your first repo →</Link>
+                <div className="text-center p-12 border border-dashed border-border/40 rounded-xl bg-card/20 flex flex-col items-center gap-4">
+                  <div className="h-16 w-16 rounded-full bg-primary/5 flex items-center justify-center border border-primary/10">
+                    <Plus className="h-8 w-8 text-primary/40" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">Analyze your first repository</h3>
+                    <p className="text-muted-foreground text-sm max-w-xs mx-auto mt-1">Get started by analyzing a GitHub repository to generate professional documentation.</p>
+                  </div>
+                  <Button asChild>
+                    <Link to="/analyzer">
+                      Analyze Now
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
                   </Button>
                 </div>
               ) : repositories?.map((repo) => (

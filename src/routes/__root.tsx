@@ -11,6 +11,8 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 import "github-markdown-css/github-markdown-dark.css";
 import "highlight.js/styles/github-dark.css";
@@ -145,7 +147,10 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <TooltipProvider>
+        <Outlet />
+        <Toaster position="top-center" richColors />
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }

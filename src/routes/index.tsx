@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +31,23 @@ export const Route = createFileRoute("/")({
 });
 
 function LandingPage() {
+  const [url, setUrl] = useState("");
+  const navigate = useNavigate();
+
+  const handleAnalyze = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!url) return;
+    
+    // Basic validation before navigating
+    const githubUrlPattern = /^https?:\/\/(www\.)?github\.com\/[\w-]+\/[\w.-]+\/?$/;
+    if (!githubUrlPattern.test(url)) {
+      // If it doesn't match the strict pattern, we still navigate but let the analyzer handle it
+      // or we can show a quick toast here.
+    }
+    
+    navigate({ to: "/analyzer", search: { url } });
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
       {/* Navigation */}
@@ -76,21 +94,21 @@ function LandingPage() {
                 Analyze your repository, generate accurate documentation, and keep your README in sync with your code. Support for all major languages and frameworks.
               </p>
               
-              <div className="mx-auto mb-12 flex max-w-2xl flex-col gap-3 sm:flex-row">
+              <form onSubmit={handleAnalyze} className="mx-auto mb-12 flex max-w-2xl flex-col gap-3 sm:flex-row">
                 <div className="relative flex-1">
                   <GitGraph className="absolute top-3 left-4 h-5 w-5 text-muted-foreground" />
                   <Input 
                     placeholder="https://github.com/username/repo" 
                     className="h-12 border-border/50 bg-secondary/30 pl-11 ring-offset-background focus-visible:ring-primary/30"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
                   />
                 </div>
-                <Button size="lg" className="h-12 rounded-lg px-8 shadow-xl shadow-primary/20 transition-all hover:translate-y-[-2px] hover:shadow-2xl hover:shadow-primary/30" asChild>
-                  <Link to="/analyzer">
-                    Analyze Repository
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
+                <Button type="submit" size="lg" className="h-12 rounded-lg px-8 shadow-xl shadow-primary/20 transition-all hover:translate-y-[-2px] hover:shadow-2xl hover:shadow-primary/30">
+                  Analyze Repository
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-              </div>
+              </form>
               
               <p className="mb-16 text-sm text-muted-foreground">
                 Supporting all public GitHub repositories. No access required.

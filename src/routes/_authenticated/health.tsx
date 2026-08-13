@@ -149,7 +149,8 @@ function HealthPage() {
     }
   };
 
-  const displayScore = score?.overall_score || 87;
+  const displayScore = score?.overall_score ?? null;
+  const showMockScore = displayScore === null && !loading;
   
   const categories = score ? [
     { name: "Overview", score: score.overview_score || 0 },
@@ -270,10 +271,10 @@ function HealthPage() {
                 <div className="relative flex items-center justify-center">
                    <svg className="h-40 w-40 transform -rotate-90">
                       <circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-secondary" />
-                      <circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={440} strokeDashoffset={440 - (440 * displayScore) / 100} className="text-primary" />
+                      <circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={440} strokeDashoffset={440 - (440 * (displayScore ?? 0)) / 100} className="text-primary transition-all duration-1000 ease-in-out" />
                    </svg>
                    <div className="absolute flex flex-col items-center">
-                      <span className="text-5xl font-extrabold tracking-tighter">{displayScore}</span>
+                      <span className="text-5xl font-extrabold tracking-tighter">{displayScore ?? "--"}</span>
                       <span className="text-xs text-muted-foreground uppercase font-bold tracking-widest">/ 100</span>
                    </div>
                 </div>
@@ -281,12 +282,14 @@ function HealthPage() {
              
              <div className="col-span-2 p-6 md:p-8 space-y-6">
                 <div>
-                   <h3 className="text-xl font-bold mb-2">
-                     {displayScore >= 90 ? "Excellent Documentation!" : 
+                    <h3 className="text-xl font-bold mb-2">
+                     {displayScore === null ? "Analysis Pending" :
+                      displayScore >= 90 ? "Excellent Documentation!" : 
                       displayScore >= 70 ? "Good Foundation" : "Needs Improvement"}
                    </h3>
                    <p className="text-muted-foreground text-sm leading-relaxed">
-                     {displayScore >= 90 ? "Your README is in the top 5% of projects we've analyzed. It covers most essential categories and provides a clear technical overview of the project." :
+                     {displayScore === null ? "Please ensure you have generated a README and wait for the health scan to complete." :
+                      displayScore >= 90 ? "Your README is in the top 5% of projects we've analyzed. It covers most essential categories and provides a clear technical overview of the project." :
                       "We've identified several areas where your documentation could be strengthened to better serve your project's users and contributors."}
                    </p>
                 </div>
