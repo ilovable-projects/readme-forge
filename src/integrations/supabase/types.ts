@@ -14,7 +14,240 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          email: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email: string
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      readme_documents: {
+        Row: {
+          created_at: string
+          id: string
+          markdown_content: string
+          repository_id: string
+          score: number | null
+          template: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          markdown_content: string
+          repository_id: string
+          score?: number | null
+          template?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          markdown_content?: string
+          repository_id?: string
+          score?: number | null
+          template?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "readme_documents_repository_id_fkey"
+            columns: ["repository_id"]
+            isOneToOne: false
+            referencedRelation: "repositories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      readme_scores: {
+        Row: {
+          accuracy_score: number | null
+          configuration_score: number | null
+          contribution_score: number | null
+          created_at: string
+          documentation_score: number | null
+          features_score: number | null
+          id: string
+          installation_score: number | null
+          issues: Json | null
+          overall_score: number
+          overview_score: number | null
+          readme_document_id: string
+          suggestions: Json | null
+          tech_stack_score: number | null
+          usage_score: number | null
+        }
+        Insert: {
+          accuracy_score?: number | null
+          configuration_score?: number | null
+          contribution_score?: number | null
+          created_at?: string
+          documentation_score?: number | null
+          features_score?: number | null
+          id?: string
+          installation_score?: number | null
+          issues?: Json | null
+          overall_score: number
+          overview_score?: number | null
+          readme_document_id: string
+          suggestions?: Json | null
+          tech_stack_score?: number | null
+          usage_score?: number | null
+        }
+        Update: {
+          accuracy_score?: number | null
+          configuration_score?: number | null
+          contribution_score?: number | null
+          created_at?: string
+          documentation_score?: number | null
+          features_score?: number | null
+          id?: string
+          installation_score?: number | null
+          issues?: Json | null
+          overall_score?: number
+          overview_score?: number | null
+          readme_document_id?: string
+          suggestions?: Json | null
+          tech_stack_score?: number | null
+          usage_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "readme_scores_readme_document_id_fkey"
+            columns: ["readme_document_id"]
+            isOneToOne: false
+            referencedRelation: "readme_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      repositories: {
+        Row: {
+          created_at: string
+          default_branch: string | null
+          description: string | null
+          forks: number | null
+          github_url: string
+          id: string
+          is_private: boolean | null
+          language: string | null
+          metadata: Json | null
+          name: string
+          owner: string
+          stars: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_branch?: string | null
+          description?: string | null
+          forks?: number | null
+          github_url: string
+          id?: string
+          is_private?: boolean | null
+          language?: string | null
+          metadata?: Json | null
+          name: string
+          owner: string
+          stars?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          default_branch?: string | null
+          description?: string | null
+          forks?: number | null
+          github_url?: string
+          id?: string
+          is_private?: boolean | null
+          language?: string | null
+          metadata?: Json | null
+          name?: string
+          owner?: string
+          stars?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      repository_analyses: {
+        Row: {
+          analysis_data: Json
+          created_at: string
+          detected_dependencies: Json | null
+          detected_frameworks: Json | null
+          detected_languages: Json | null
+          detected_scripts: Json | null
+          environment_variables: Json | null
+          id: string
+          license: string | null
+          project_structure: Json | null
+          repository_id: string
+        }
+        Insert: {
+          analysis_data?: Json
+          created_at?: string
+          detected_dependencies?: Json | null
+          detected_frameworks?: Json | null
+          detected_languages?: Json | null
+          detected_scripts?: Json | null
+          environment_variables?: Json | null
+          id?: string
+          license?: string | null
+          project_structure?: Json | null
+          repository_id: string
+        }
+        Update: {
+          analysis_data?: Json
+          created_at?: string
+          detected_dependencies?: Json | null
+          detected_frameworks?: Json | null
+          detected_languages?: Json | null
+          detected_scripts?: Json | null
+          environment_variables?: Json | null
+          id?: string
+          license?: string | null
+          project_structure?: Json | null
+          repository_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repository_analyses_repository_id_fkey"
+            columns: ["repository_id"]
+            isOneToOne: false
+            referencedRelation: "repositories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
