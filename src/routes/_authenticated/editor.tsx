@@ -25,7 +25,6 @@ import {
   ClipboardCheck,
   FileCode,
   ArrowRight,
-  Github,
   GitBranch,
   FileBox,
   MessageSquare
@@ -134,7 +133,7 @@ function EditorPage() {
     try {
       const { data: analysisData } = await supabase
         .from('repository_analyses')
-        .select('*')
+        .select('*, repositories(*)')
         .eq('repository_id', repositoryId!)
         .maybeSingle();
       
@@ -142,7 +141,7 @@ function EditorPage() {
         setAnalysis(analysisData);
         setCommitData(prev => ({
           ...prev,
-          branch: analysisData.repository?.default_branch || 'main'
+          branch: (analysisData as any).repositories?.default_branch || 'main'
         }));
       }
 
@@ -346,15 +345,15 @@ function EditorPage() {
   };
 
   const handleCommit = async () => {
-    if (!analysis?.repository || !markdown) return;
+    if (!analysis?.repositories || !markdown) return;
     
     setIsCommitting(true);
     try {
       const result = await commitToGithubFn({
         data: {
           repositoryId: repositoryId!,
-          owner: analysis.repository.owner,
-          repo: analysis.repository.name,
+          owner: (analysis as any).repositories.owner,
+          repo: (analysis as any).repositories.name,
           branch: commitData.branch,
           path: commitData.path,
           content: markdown,
@@ -396,7 +395,7 @@ function EditorPage() {
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-primary" />
             <span className="text-sm font-bold truncate max-w-[150px]">
-              {analysis?.repository?.name || "README.md"}
+              {analysis?.repositories?.name || "README.md"}
             </span>
             <Badge variant="secondary" className="ml-2 text-[10px] uppercase tracking-tighter">
               {isSaving ? "Saving..." : "Saved"}
@@ -416,7 +415,7 @@ function EditorPage() {
             Reset
           </Button>
           <Button variant="outline" size="sm" onClick={() => setIsCommitModalOpen(true)} className="border-primary/20 hover:bg-primary/5">
-            <Github className="mr-2 h-4 w-4" />
+            <Code2 className="mr-2 h-4 w-4" />
             Commit to GitHub
           </Button>
           <Button variant="outline" size="sm" onClick={() => setIsExportModalOpen(true)}>
@@ -691,7 +690,7 @@ function EditorPage() {
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Github className="h-5 w-5" />
+              <Code2 className="h-5 w-5" />
               Commit to GitHub
             </DialogTitle>
             <DialogDescription>
@@ -705,7 +704,7 @@ function EditorPage() {
                 <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Repository</Label>
                 <div className="flex items-center gap-2 text-sm font-medium bg-secondary/30 p-2 rounded border border-border/40">
                   <GitGraph className="h-4 w-4 text-primary" />
-                  {analysis?.repository?.owner}/{analysis?.repository?.name}
+                  {(analysis as any)?.repositories?.owner}/{(analysis as any)?.repositories?.name}
                 </div>
               </div>
               <div className="space-y-2">

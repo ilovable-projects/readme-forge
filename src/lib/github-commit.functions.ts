@@ -73,7 +73,7 @@ export const commitReadmeToGithub = createServerFn({ method: "POST" })
         branch: data.branch,
         message: data.message,
         content: Buffer.from(data.content).toString("base64"),
-        sha,
+        sha: sha ?? undefined,
       });
 
       return {
