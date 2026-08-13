@@ -20,6 +20,7 @@ function AuthCallbackPage() {
 
   useEffect(() => {
     let mounted = true;
+    let subscription: any = null;
 
     const handleAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -35,29 +36,21 @@ function AuthCallbackPage() {
       if (session) {
         navigate({ to: '/dashboard' });
       } else {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        const { data } = supabase.auth.onAuthStateChange((event, session) => {
           if (!mounted) return;
           if (session) {
             navigate({ to: '/dashboard' });
-            subscription.unsubscribe();
           } else if (event === 'SIGNED_OUT') {
             navigate({ to: '/auth' });
-            subscription.unsubscribe();
           }
         });
+        subscription = data.subscription;
         
-        const timeout = setTimeout(() => {
-          if (mounted) {
-            subscription.unsubscribe();
+        setTimeout(() => {
+          if (mounted && !session) {
             navigate({ to: '/auth' });
           }
         }, 10000);
-
-        return () => {
-          mounted = false;
-          clearTimeout(timeout);
-          subscription.unsubscribe();
-        };
       }
     };
 
@@ -65,6 +58,9 @@ function AuthCallbackPage() {
 
     return () => {
       mounted = false;
+      if (subscription) {
+        subscription.unsubscribe();
+      }
     };
   }, [navigate, type]);
 
