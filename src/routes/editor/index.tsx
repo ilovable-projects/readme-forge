@@ -20,7 +20,11 @@ import {
   Code2,
   Zap,
   GitGraph,
-  Layers
+  Layers,
+  ExternalLink,
+  ClipboardCheck,
+  FileCode,
+  ArrowRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,6 +40,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-data";
@@ -88,6 +101,7 @@ function EditorPage() {
   const [documentId, setDocumentId] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<any>(null);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Load document and analysis
@@ -282,18 +296,29 @@ function EditorPage() {
   };
 
   const handleDownload = () => {
-    const blob = new Blob([markdown], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'README.md';
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'README.md';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("README.md downloaded successfully!");
+    } catch (error) {
+      toast.error("Failed to download README.md");
+    }
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(markdown);
-    toast.success("Markdown copied to clipboard!");
+    try {
+      navigator.clipboard.writeText(markdown);
+      toast.success("Markdown copied to clipboard!");
+    } catch (error) {
+      toast.error("Failed to copy to clipboard");
+    }
   };
 
   if (isLoading) {
@@ -338,13 +363,9 @@ function EditorPage() {
             <RefreshCcw className="mr-2 h-4 w-4" />
             Reset
           </Button>
-          <Button variant="outline" size="sm" onClick={handleCopy}>
-            <Copy className="mr-2 h-4 w-4" />
-            Copy
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleDownload}>
-            <Download className="mr-2 h-4 w-4" />
-            Download
+          <Button variant="outline" size="sm" onClick={() => setIsExportModalOpen(true)}>
+            <ExternalLink className="mr-2 h-4 w-4" />
+            Export
           </Button>
           <Button variant="outline" size="sm" asChild>
             <Link to="/templates">
@@ -566,6 +587,12 @@ function EditorPage() {
            </div>
         </aside>
       </div>
+      <ExportModal 
+        isOpen={isExportModalOpen} 
+        onClose={() => setIsExportModalOpen(false)} 
+        onDownload={handleDownload}
+        onCopy={handleCopy}
+      />
     </div>
   );
 }
@@ -616,5 +643,77 @@ function StatusBadge({ label, exists }: { label: string, exists: boolean }) {
         {exists ? "Detected" : "Missing"}
       </span>
     </div>
+  );
+}
+
+function ExportModal({ 
+  isOpen, 
+  onClose, 
+  onDownload, 
+  onCopy 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onDownload: () => void;
+  onCopy: () => void;
+}) {
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[480px] bg-card border-border/40 p-0 overflow-hidden shadow-2xl">
+        <DialogHeader className="p-6 pb-0">
+          <DialogTitle className="text-xl font-bold flex items-center gap-2">
+            <ExternalLink className="h-5 w-5 text-primary" />
+            Export README
+          </DialogTitle>
+          <DialogDescription className="text-muted-foreground mt-1">
+            Choose your preferred format to export your professional README.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="p-6 space-y-4">
+          <div 
+            className="group cursor-pointer p-4 rounded-xl border border-border/40 bg-secondary/10 hover:bg-secondary/20 hover:border-primary/30 transition-all"
+            onClick={onDownload}
+          >
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-lg bg-primary/10 text-primary group-hover:scale-110 transition-transform">
+                <FileCode className="h-6 w-6" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-bold text-sm mb-1">README.md</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Download as a standard Markdown file ready to be uploaded to GitHub.
+                </p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors self-center" />
+            </div>
+          </div>
+
+          <div 
+            className="group cursor-pointer p-4 rounded-xl border border-border/40 bg-secondary/10 hover:bg-secondary/20 hover:border-primary/30 transition-all"
+            onClick={onCopy}
+          >
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-lg bg-primary/10 text-primary group-hover:scale-110 transition-transform">
+                <ClipboardCheck className="h-6 w-6" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-bold text-sm mb-1">Markdown Text</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Copy the raw Markdown text directly to your clipboard.
+                </p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors self-center" />
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter className="p-6 pt-0 sm:justify-start">
+          <Button variant="ghost" onClick={onClose} className="text-xs">
+            Cancel
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
