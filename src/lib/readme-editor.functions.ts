@@ -23,7 +23,19 @@ export const editReadmeSection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data) => editSectionSchema.parse(data))
   .handler(async ({ data, context }) => {
-    const { sectionTitle, currentContent, action, context: techContext } = data;
+    const { sectionTitle, currentContent, action, context: techContext, documentId } = data;
+    const userId = context.userId;
+
+    // Verify ownership
+    const { data: docOwner } = await supabaseAdmin
+      .from('readme_documents')
+      .select('user_id')
+      .eq('id', documentId)
+      .single();
+
+    if (!docOwner || docOwner.user_id !== userId) {
+      throw new Error("Unauthorized");
+    }
     
     // Simulate AI latency
     await new Promise(resolve => setTimeout(resolve, 1500));

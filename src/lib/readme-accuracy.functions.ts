@@ -34,8 +34,20 @@ const accuracyRequestSchema = z.object({
 export const checkReadmeAccuracy = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data) => accuracyRequestSchema.parse(data))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { documentId, repositoryId, content } = data;
+    const userId = context.userId;
+
+    // Verify ownership of document
+    const { data: docOwner } = await supabaseAdmin
+      .from('readme_documents')
+      .select('user_id')
+      .eq('id', documentId)
+      .single();
+
+    if (!docOwner || docOwner.user_id !== userId) {
+      throw new Error("Unauthorized access to document");
+    }
     
     const { data: analysisData } = await supabaseAdmin
       .from('repository_analyses')

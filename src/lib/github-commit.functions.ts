@@ -49,6 +49,9 @@ export const commitReadmeToGithub = createServerFn({ method: "POST" })
           repo: data.repo,
           path: data.path,
           ref: data.branch,
+          headers: {
+            'X-Content-Type-Options': 'nosniff'
+          }
         });
 
         if (Array.isArray(existingFile)) {
