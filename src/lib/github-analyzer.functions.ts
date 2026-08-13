@@ -2,19 +2,17 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { Octokit } from "octokit";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const githubUrlSchema = z.string().url().refine((url) => {
   return url.startsWith("https://github.com/") && url.split("/").filter(Boolean).length >= 3;
 }, "Invalid GitHub repository URL");
 
 export const analyzeRepository = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data) => githubUrlSchema.parse(data))
   .handler(async ({ data: repoUrl, context }) => {
-    // Check auth
-    if (!context || !context.auth?.user?.id) {
-      throw new Error("Unauthorized");
-    }
-    const userId = context.auth.user.id;
+    const userId = context.userId;
 
     const GITHUB_TOKEN = process.env['GITHUB_TOKEN'];
     const octokit = new Octokit({ auth: GITHUB_TOKEN });
