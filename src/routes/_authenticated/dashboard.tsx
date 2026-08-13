@@ -9,6 +9,7 @@ import {
   FileText, 
   ChevronRight,
   Code2,
+  ExternalLink,
   Settings as SettingsIcon,
   Layout,
   Search,
@@ -333,11 +334,18 @@ function DashboardPage() {
                              <div className={`h-full bg-primary`} style={{ width: `100%` }} />
                           </div>
                         </div>
-                        <Button variant="ghost" size="icon" className="opacity-0 lg:group-hover:opacity-100 transition-opacity" asChild>
-                          <Link to="/editor" search={{ repositoryId: repo.id }}>
-                            <ChevronRight className="h-4 w-4" />
-                          </Link>
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button variant="ghost" size="icon" className="opacity-0 lg:group-hover:opacity-100 transition-opacity" asChild title="View on GitHub">
+                            <a href={repo.url} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          </Button>
+                          <Button variant="ghost" size="icon" className="opacity-0 lg:group-hover:opacity-100 transition-opacity" asChild title="Edit README">
+                            <Link to="/editor" search={{ repositoryId: repo.id }}>
+                              <ChevronRight className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </CardContent>

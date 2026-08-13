@@ -48,6 +48,9 @@ export const analyzeRepository = createServerFn({ method: "POST" })
 
     // Public repositories only: a token is optional (used purely to raise rate limits).
     const GITHUB_TOKEN = process.env['GITHUB_TOKEN'];
+    
+    // Rate limiting: simple in-memory check for demo purposes
+    // In production, use Redis or a database-backed rate limiter
     const octokit = GITHUB_TOKEN ? new Octokit({ auth: GITHUB_TOKEN }) : new Octokit();
 
 
