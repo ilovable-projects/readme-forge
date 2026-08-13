@@ -47,7 +47,8 @@ export const analyzeRepository = createServerFn({ method: "POST" })
     const userId = context.userId;
 
     // Public repositories only: a token is optional (used purely to raise rate limits).
-    const GITHUB_TOKEN = process.env['GITHUB_TOKEN'];
+    const rawToken = process.env['GITHUB_TOKEN'];
+    const GITHUB_TOKEN = (rawToken && rawToken !== "undefined" && rawToken !== "null" && rawToken.length > 5) ? rawToken : undefined;
     
     // Rate limiting: simple in-memory check for demo purposes
     // In production, use Redis or a database-backed rate limiter
