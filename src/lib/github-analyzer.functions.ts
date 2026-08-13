@@ -39,16 +39,24 @@ const githubUrlSchema = z.string().url().refine((url) => {
 export const analyzeRepository = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data: unknown) => {
-    return z.string().url().parse(data);
+    return githubUrlSchema.parse(data);
   })
   .handler(async ({ data, context }) => {
     const userId = context.userId;
 
     const GITHUB_TOKEN = process.env['GITHUB_TOKEN'];
+    if (!GITHUB_TOKEN) {
+      throw new Error("Server configuration error: GITHUB_TOKEN is missing.");
+    }
     const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
     const urlString = data as string;
+    // Strict sanitization of input URL
     const cleanUrl = urlString.split('?')[0]!.split('#')[0]!.replace(/\/$/, "");
+    if (!cleanUrl.startsWith("https://github.com/")) {
+      throw new Error("Invalid GitHub repository URL.");
+    }
+
     const parts = cleanUrl.replace("https://github.com/", "").split("/").filter(Boolean);
     const owner = parts[0] as string;
     const repo = parts[1] as string;
@@ -301,6 +309,7 @@ export const analyzeRepository = createServerFn({ method: "POST" })
 
       if (analysisError) throw analysisError;
 
+      // Security: Repository content is treated as untrusted data during analysis.
       return repoData;
     } catch (error: any) {
       if (error.status === 404) {

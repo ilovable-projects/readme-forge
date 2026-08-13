@@ -20,24 +20,29 @@ export const commitReadmeToGithub = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const userId = context.userId;
 
+    // Verify repository ownership before committing
+    const { data: repoCheck } = await supabaseAdmin
+      .from('repositories')
+      .select('user_id')
+      .eq('id', data.repositoryId)
+      .single();
+
+    if (!repoCheck || repoCheck.user_id !== userId) {
+      throw new Error("Unauthorized to commit to this repository.");
+    }
+
     // 1. Get user and check identities
     const { data: { user }, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
     if (userError || !user) {
       throw new Error("User not found");
     }
 
-    const githubIdentity = user.identities?.find(id => id.provider === 'github');
-    
-    // In a real production app, we would use the user's OAuth token.
-    // Since we're in a managed environment, we'll check for a global GITHUB_TOKEN.
+    // In a production app, the GITHUB_TOKEN should have minimal necessary scopes (repo access only).
     const GITHUB_TOKEN = process.env['GITHUB_TOKEN'];
     if (!GITHUB_TOKEN) {
       throw new Error("GitHub integration is not fully configured (missing GITHUB_TOKEN).");
     }
 
-    // Initialize Octokit
-    // NOTE: Ideally we use the user's provider token if we can retrieve it.
-    // For now, we use the global token but we SHOULD check permissions.
     const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
     try {
