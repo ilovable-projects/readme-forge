@@ -243,19 +243,21 @@ function HealthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="mx-auto max-w-5xl space-y-8">
-        <header className="flex items-center justify-between">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-             <Button variant="ghost" size="sm" asChild>
+             <Button variant="ghost" size="icon" asChild className="shrink-0">
                 <Link to="/editor" search={{ repositoryId: repositoryId || score?.repository_id || "" }}>
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Editor
+                  <ArrowLeft className="h-5 w-5" />
                 </Link>
              </Button>
-             <h1 className="text-3xl font-bold tracking-tight">README Health Report</h1>
+             <div className="space-y-1">
+               <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Health Report</h1>
+               <p className="text-muted-foreground text-xs md:text-sm hidden sm:block">Detailed analysis of your project's documentation quality.</p>
+             </div>
           </div>
-          <Badge variant="outline" className="px-3 py-1 text-xs uppercase font-bold tracking-widest bg-emerald-500/5 text-emerald-500 border-emerald-500/20">
+          <Badge variant="outline" className="w-fit px-3 py-1 text-[10px] uppercase font-bold tracking-widest bg-emerald-500/5 text-emerald-500 border-emerald-500/20">
             Scan Complete
           </Badge>
         </header>
@@ -263,7 +265,7 @@ function HealthPage() {
         {/* Hero Score Card */}
         <Card className="border-border/40 bg-card/50 overflow-hidden">
           <div className="grid md:grid-cols-3">
-             <div className="p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-border/40 bg-primary/5">
+             <div className="p-6 md:p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-border/40 bg-primary/5">
                 <span className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4">Overall Health</span>
                 <div className="relative flex items-center justify-center">
                    <svg className="h-40 w-40 transform -rotate-90">
@@ -277,7 +279,7 @@ function HealthPage() {
                 </div>
              </div>
              
-             <div className="col-span-2 p-8 space-y-6">
+             <div className="col-span-2 p-6 md:p-8 space-y-6">
                 <div>
                    <h3 className="text-xl font-bold mb-2">
                      {displayScore >= 90 ? "Excellent Documentation!" : 
