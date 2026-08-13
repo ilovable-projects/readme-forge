@@ -25,6 +25,7 @@ import { toast } from "sonner";
 
 const healthSearchSchema = z.object({
   documentId: z.string().optional(),
+  repositoryId: z.string().optional(),
 });
 
 export const Route = createFileRoute("/health/")({
@@ -65,24 +66,55 @@ const DEFAULT_ISSUES = [
 ];
 
 function HealthPage() {
-  const { documentId } = useSearch({ from: '/health/' });
+  const { documentId, repositoryId } = useSearch({ from: '/health/' });
   const { user } = useAuth();
-  const [loading, setLoading] = useState(!!documentId);
+  const [loading, setLoading] = useState(!!documentId || !!repositoryId);
   const [score, setScore] = useState<any>(null);
+  const [analysis, setAnalysis] = useState<any>(null);
 
   useEffect(() => {
-    if (documentId && user) {
+    if ((documentId || repositoryId) && user) {
       fetchScore();
     }
-  }, [documentId, user]);
+  }, [documentId, repositoryId, user]);
 
   const fetchScore = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      if (repositoryId) {
+        const { data: analysisData } = await supabase
+          .from('repository_analyses')
+          .select('*')
+          .eq('repository_id', repositoryId)
+          .maybeSingle();
+        if (analysisData) setAnalysis(analysisData);
+      }
+
+      const query = supabase
         .from('readme_scores')
-        .select('*')
-        .eq('readme_document_id', documentId!)
+        .select('*');
+      
+      if (documentId) {
+        query.eq('readme_document_id', documentId);
+      } else if (repositoryId) {
+        // Find latest score for this repo
+        const { data: latestDoc } = await supabase
+          .from('readme_documents')
+          .select('id')
+          .eq('repository_id', repositoryId)
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        if (latestDoc) {
+          query.eq('readme_document_id', latestDoc.id);
+        } else {
+          setLoading(false);
+          return;
+        }
+      }
+
+      const { data, error } = await query
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -126,7 +158,7 @@ function HealthPage() {
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-4">
              <Button variant="ghost" size="sm" asChild>
-                <Link to="/editor" search={{ repositoryId: score?.repository_id || "" }}>
+                <Link to="/editor" search={{ repositoryId: repositoryId || score?.repository_id || "" }}>
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to Editor
                 </Link>
