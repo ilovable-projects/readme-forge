@@ -48,7 +48,8 @@ export const analyzeRepository = createServerFn({ method: "POST" })
     const GITHUB_TOKEN = process.env['GITHUB_TOKEN'];
     const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
-    const cleanUrl = (urlString || "").split('?')[0].split('#')[0].replace(/\/$/, "");
+    const urlToClean: string = urlString || "";
+    const cleanUrl = urlToClean.split('?')[0].split('#')[0].replace(/\/$/, "");
     const parts = cleanUrl.replace("https://github.com/", "").split("/").filter(Boolean);
     const owner = parts[0] as string;
     const repo = parts[1] as string;
