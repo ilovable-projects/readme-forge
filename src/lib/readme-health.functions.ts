@@ -250,10 +250,6 @@ export const calculateReadmeScore = createServerFn({ method: "POST" })
         testing_score: categories['testing'].score,
         accuracy_score: categories['accuracy']?.score || 0,
         issues: issues as any,
-        metadata: {
-          categories,
-          calculated_at: new Date().toISOString()
-        } as any
       }, { onConflict: 'readme_document_id' });
 
     if (scoreError) console.error("Failed to save score:", scoreError);
