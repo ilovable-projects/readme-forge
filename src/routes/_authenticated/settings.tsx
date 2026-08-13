@@ -26,6 +26,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth, useProfile } from "@/hooks/use-data";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -72,8 +73,40 @@ function SettingsPage() {
 
   if (profileLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-background p-4 md:p-8">
+        <div className="mx-auto max-w-5xl space-y-8">
+          <div className="space-y-2">
+            <Skeleton className="h-10 w-48" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <div className="flex gap-2">
+            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-10 w-24" />)}
+          </div>
+          <Card className="border-border/40 bg-card/50">
+            <CardHeader>
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-4 w-64 mt-2" />
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center gap-6">
+                <Skeleton className="h-20 w-20 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-8 w-32" />
+                  <Skeleton className="h-4 w-48" />
+                </div>
+              </div>
+              <Separator />
+              <div className="grid gap-4 sm:grid-cols-2">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
