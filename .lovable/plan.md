@@ -1,23 +1,37 @@
-# READMEForge Implementation Plan
+# Plan - Connect READMEForge to Supabase
 
-Build READMEForge, an AI-powered GitHub README generator and analyzer.
+Connect the frontend to Lovable Cloud (Supabase) for data persistence and authentication, replacing mock data while preserving the existing UI and functionality.
 
-## User Interface & Design
-- **Theme**: Dark-first, minimal developer-focused SaaS.
-- **Components**: GitHub URL input, analyzer dashboard, README editor/preview, template gallery.
+## User Review Required
 
-## Features
-- **URL Analysis**: Enter public repo URL to trigger "analysis" (mocked).
-- **Dashboard**: Show repository stats, SEO/readability scores, and improvement suggestions.
-- **Generator**: Multi-template support (Open Source, Portfolio, SaaS, etc.).
-- **Editor**: Side-by-side Markdown editor and real-time preview.
+> [!IMPORTANT]
+> - Do you want a dedicated `/auth` page for login/signup, or should I integrate it directly into the landing page?
+> - Should I keep the demo data available for unauthenticated users, or redirect them to sign in immediately when accessing the dashboard?
+
+## Proposed Changes
+
+### Database & Security
+- Refine the existing schema to match the specific column requirements (adding `existing_readme`, granular scores, etc.).
+- Ensure robust RLS policies are in place so users only access their own data.
+- Add performance indexes for `user_id` and `repository_id` fields.
+
+### Authentication
+- Implement Supabase Auth.
+- Create an `Auth` component/page for user onboarding.
+- Update `src/routes/__root.tsx` to handle authentication state globally.
+- Protect `/dashboard`, `/analyzer`, `/editor`, `/health`, and `/settings` routes using a route guard.
+
+### Data Integration
+- **Dashboard**: Replace static mock repositories with a query to the `repositories` table.
+- **Analyzer**: Update the simulation to save the "analyzed" repository data into `repositories` and `repository_analyses` tables upon completion.
+- **Editor**: Implement saving and loading of README documents to/from the `readme_documents` table.
+- **Health Score**: Link the health report to data stored in the `readme_scores` table.
+- **Settings**: Enable updating the `profiles` table for user display names and avatars.
+
+### Infrastructure
+- Ensure `src/start.ts` includes the necessary middleware to attach the Supabase bearer token to server functions (if any are added, though primarily using client-side SDK for this scope).
 
 ## Technical Details
-- **Framework**: TanStack Start (React 19).
-- **Styling**: Tailwind CSS v4.
-- **State Management**: TanStack Query for data fetching.
-- **Mock Data**: Realistic data for initial frontend implementation.
-
-## Security & SEO
-- **SEO**: Meta tags for each route (Analyzer, Gallery, Editor).
-- **Security**: Public repo analysis only (no auth required for basic features).
+- Use `@supabase/supabase-js` for client-side data operations.
+- Utilize TanStack Query (`useQuery`, `useMutation`) for efficient data fetching and caching, integrated with the existing TanStack Start architecture.
+- Follow the "Security Definer" pattern for any complex logic that needs to bypass RLS safely on the server.
