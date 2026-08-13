@@ -33,12 +33,113 @@ export const Route = createFileRoute("/templates/")({
 });
 
 function TemplatesPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
+  const [previewTemplate, setPreviewTemplate] = useState<TemplateConfig | null>(null);
+  const [confirmTemplate, setConfirmTemplate] = useState<TemplateConfig | null>(null);
+  const [isApplying, setIsApplying] = useState(false);
+  const [lastRepositoryId, setLastRepositoryId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Get the most recently analyzed repository for this user
+    if (user) {
+      supabase
+        .from('repositories')
+        .select('id')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) setLastRepositoryId(data.id);
+        });
+    }
+  }, [user]);
 
   const filteredTemplates = TEMPLATES.filter(t => 
     t.name.toLowerCase().includes(search.toLowerCase()) || 
-    t.desc.toLowerCase().includes(search.toLowerCase())
+    t.description.toLowerCase().includes(search.toLowerCase())
   );
+
+  const applyTemplate = async (template: TemplateConfig) => {
+    if (!user || !lastRepositoryId) {
+      toast.error("Please analyze a repository first.");
+      return;
+    }
+
+    setIsApplying(true);
+    try {
+      // 1. Check if a README already exists
+      const { data: existingDoc } = await supabase
+        .from('readme_documents')
+        .select('*')
+        .eq('repository_id', lastRepositoryId)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      // 2. Prepare content
+      const badges = template.default_badges.map(b => \`![Badge](\${b})\`).join(' ');
+      const content = \`# Project Name\n\n\${badges}\n\n\${template.section_order.map(s => \`## \${s}\n\nPlaceholder for \${s.toLowerCase()}...\`).join('\n\n')}\`;
+
+      if (existingDoc && existingDoc.markdown_content) {
+        // If content exists, we would ideally merge it. For now, we confirm.
+        setConfirmTemplate(template);
+        setIsApplying(false);
+        return;
+      }
+
+      // 3. Create document
+      const { data: newDoc, error } = await supabase
+        .from('readme_documents')
+        .insert([{
+          user_id: user.id,
+          repository_id: lastRepositoryId,
+          title: \`README (\${template.name})\`,
+          markdown_content: content,
+          template: template.id
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success(\`Template "\${template.name}" applied!\`);
+      navigate({ to: '/editor', search: { repositoryId: lastRepositoryId } });
+    } catch (error: any) {
+      toast.error("Failed to apply template: " + error.message);
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
+  const handleConfirmReplace = async () => {
+    if (!confirmTemplate || !user || !lastRepositoryId) return;
+    
+    setIsApplying(true);
+    try {
+      const badges = confirmTemplate.default_badges.map(b => \`![Badge](\${b})\`).join(' ');
+      const content = \`# Project Name\n\n\${badges}\n\n\${confirmTemplate.section_order.map(s => \`## \${s}\n\nPlaceholder for \${s.toLowerCase()}...\`).join('\n\n')}\`;
+
+      await supabase
+        .from('readme_documents')
+        .update({
+          markdown_content: content,
+          template: confirmTemplate.id,
+          updated_at: new Date().toISOString()
+        })
+        .eq('repository_id', lastRepositoryId);
+
+      toast.success(\`Template "\${confirmTemplate.name}" applied successfully!\`);
+      navigate({ to: '/editor', search: { repositoryId: lastRepositoryId } });
+    } catch (error: any) {
+      toast.error("Failed to apply template: " + error.message);
+    } finally {
+      setIsApplying(false);
+      setConfirmTemplate(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background p-8">
@@ -46,7 +147,7 @@ function TemplatesPage() {
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold tracking-tight">README Templates</h1>
-            <p className="text-muted-foreground">Select a starting point for your project documentation.</p>
+            <p className="text-muted-foreground">Select a professional starting point tailored for your project.</p>
           </div>
           <div className="w-full md:w-80">
             <Input 
@@ -71,9 +172,13 @@ function TemplatesPage() {
                   </Badge>
                 </div>
                 <CardTitle className="mt-4">{template.name}</CardTitle>
-                <CardDescription className="line-clamp-2 mt-1">{template.desc}</CardDescription>
+                <CardDescription className="line-clamp-2 mt-1 min-h-[40px]">{template.description}</CardDescription>
               </CardHeader>
-              <CardContent className="pb-4">
+              <CardContent className="pb-4 space-y-4">
+                <div className="space-y-2">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Recommended for</span>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{template.recommended_for}</p>
+                </div>
                 <div className="flex gap-2 flex-wrap">
                   {template.tags.map(tag => (
                     <Badge key={tag} variant="outline" className="text-[10px] py-0 border-border/50 text-muted-foreground font-normal">
@@ -83,18 +188,100 @@ function TemplatesPage() {
                 </div>
               </CardContent>
               <CardFooter className="pt-0 flex gap-2">
-                <Button variant="ghost" size="sm" className="flex-1 text-xs">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="flex-1 text-xs"
+                  onClick={() => setPreviewTemplate(template)}
+                >
                   <Eye className="mr-2 h-3.5 w-3.5" />
                   Preview
                 </Button>
-                <Button size="sm" className="flex-1 text-xs">
-                  Use This
-                  <ArrowRight className="ml-2 h-3.5 w-3.5" />
+                <Button 
+                  size="sm" 
+                  className="flex-1 text-xs"
+                  onClick={() => applyTemplate(template)}
+                  disabled={isApplying}
+                >
+                  {isApplying ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <>Use This <ArrowRight className="ml-2 h-3.5 w-3.5" /></>}
                 </Button>
               </CardFooter>
             </Card>
           ))}
         </div>
+
+        {/* Preview Dialog */}
+        <Dialog open={!!previewTemplate} onOpenChange={(open) => !open && setPreviewTemplate(null)}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {previewTemplate?.name} Preview
+                <Badge variant="outline" className="text-[10px] uppercase">{previewTemplate?.style}</Badge>
+              </DialogTitle>
+              <DialogDescription>
+                Showing structure and sections for the {previewTemplate?.name} template.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <ScrollArea className="flex-1 p-6 bg-secondary/20 rounded-lg border border-border/40">
+              <div className="markdown-body !bg-transparent !font-sans !text-sm max-w-none prose dark:prose-invert">
+                <h1>{previewTemplate?.name} Project</h1>
+                <div className="flex gap-2 mb-8">
+                  {previewTemplate?.default_badges.map(b => (
+                    <img key={b} src={`https://img.shields.io/badge/${b}-template-blue`} alt={b} className="h-5" />
+                  ))}
+                </div>
+                {previewTemplate?.section_order.map(s => (
+                  <div key={s} className="mb-6">
+                    <h2 className="text-xl font-bold border-b border-border/40 pb-2 mb-3">## {s}</h2>
+                    <div className="h-8 bg-primary/5 rounded border border-dashed border-primary/20 flex items-center px-4 text-xs text-muted-foreground italic">
+                      Verified content for {s.toLowerCase()} will be placed here...
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+            
+            <DialogFooter className="mt-4">
+              <Button variant="ghost" onClick={() => setPreviewTemplate(null)}>Close Preview</Button>
+              <Button onClick={() => {
+                if (previewTemplate) applyTemplate(previewTemplate);
+                setPreviewTemplate(null);
+              }}>
+                Apply This Template
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Confirmation Dialog */}
+        <Dialog open={!!confirmTemplate} onOpenChange={(open) => !open && setConfirmTemplate(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-amber-500">
+                <AlertTriangle className="h-5 w-5" />
+                Replace Existing Content?
+              </DialogTitle>
+              <DialogDescription>
+                We detected an existing README for this repository. Applying the "{confirmTemplate?.name}" template will replace your current content with the template structure.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="p-4 bg-secondary/20 rounded-md border border-border/40 space-y-2">
+              <p className="text-xs font-bold text-muted-foreground uppercase">New Structure:</p>
+              <div className="flex flex-wrap gap-1">
+                {confirmTemplate?.section_order.map(s => (
+                  <Badge key={s} variant="secondary" className="text-[10px]">{s}</Badge>
+                ))}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setConfirmTemplate(null)}>Cancel</Button>
+              <Button variant="destructive" onClick={handleConfirmReplace} disabled={isApplying}>
+                {isApplying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Replace & Apply"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* AI Customization Callout */}
         <Card className="border-primary/20 bg-primary/5 p-8 relative overflow-hidden">
@@ -119,3 +306,5 @@ function TemplatesPage() {
     </div>
   );
 }
+
+import { ScrollArea } from "@/components/ui/scroll-area";
