@@ -1,78 +1,36 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { 
-  Layout, 
-  Code, 
-  Terminal, 
-  Cpu, 
-  Globe, 
-  Layers, 
-  Zap, 
-  Sparkles,
   ArrowRight,
-  Eye
+  Eye,
+  Search,
+  Zap,
+  Sparkles,
+  Loader2,
+  Check,
+  AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { TEMPLATES, type TemplateConfig } from "@/lib/readme-templates";
+import ReactMarkdown from "react-markdown";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-data";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/templates/")({
   component: TemplatesPage,
 });
-
-const TEMPLATES = [
-  {
-    id: "minimal",
-    name: "Minimalist",
-    desc: "Clean, essential, and fast. Perfect for small libraries.",
-    icon: Layout,
-    category: "Standard",
-    tags: ["Lightweight", "Clean"]
-  },
-  {
-    id: "professional",
-    name: "Enterprise",
-    desc: "Detailed documentation for large production apps.",
-    icon: ShieldCheck,
-    category: "Premium",
-    tags: ["Comprehensive", "Bento"]
-  },
-  {
-    id: "tool",
-    name: "CLI Tool",
-    desc: "Focuses on installation, flags, and usage commands.",
-    icon: Terminal,
-    category: "DevTools",
-    tags: ["Commands", "Flags"]
-  },
-  {
-    id: "saas",
-    name: "SaaS Product",
-    desc: "Includes feature highlights, screenshots, and CTAs.",
-    icon: Globe,
-    category: "Marketing",
-    tags: ["Visual", "Engagement"]
-  },
-  {
-    id: "api",
-    name: "API Reference",
-    desc: "Deep focus on endpoints, types, and error codes.",
-    icon: Code,
-    category: "DevTools",
-    tags: ["Technical", "Typed"]
-  },
-  {
-    id: "monorepo",
-    name: "Monorepo",
-    desc: "Organized structure for multi-package projects.",
-    icon: Layers,
-    category: "Structure",
-    tags: ["Modular", "Complex"]
-  }
-];
-
-import { ShieldCheck } from "lucide-react";
 
 function TemplatesPage() {
   const [search, setSearch] = useState("");
