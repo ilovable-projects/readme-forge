@@ -92,8 +92,9 @@ function AnalyzerPage() {
       return;
     }
     
-    if (!repoUrl.includes("github.com")) {
-      toast.error("Please enter a valid GitHub URL");
+    const githubUrlPattern = /^https?:\/\/(www\.)?github\.com\/[\w-]+\/[\w.-]+\/?$/;
+    if (!githubUrlPattern.test(repoUrl)) {
+      toast.error("Please enter a valid GitHub repository URL (e.g., https://github.com/username/repo)");
       return;
     }
     
@@ -250,6 +251,21 @@ function AnalyzerPage() {
                   className="absolute top-0 left-0 h-full bg-primary transition-all duration-300 ease-out" 
                   style={{ width: `${progress}%` }}
                 />
+              </div>
+              
+              <div className="flex justify-center">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => {
+                    setAnalyzing(false);
+                    setProgress(0);
+                    toast.info("Analysis cancelled");
+                  }}
+                  className="text-muted-foreground hover:text-destructive"
+                >
+                  Cancel Analysis
+                </Button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
