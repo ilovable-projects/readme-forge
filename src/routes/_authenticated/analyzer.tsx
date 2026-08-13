@@ -11,7 +11,7 @@ import {
   FileCheck, 
   Zap, 
   GitGraph, 
-  Github, 
+  Code2 as Github, 
   RefreshCw, 
   Plus 
 } from "lucide-react";
