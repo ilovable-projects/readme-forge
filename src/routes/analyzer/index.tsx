@@ -65,12 +65,14 @@ function AnalyzerPage() {
     const interval = setInterval(() => {
       if (stepIndex < PROGRESS_STEPS.length) {
         const step = PROGRESS_STEPS[stepIndex];
-        setCurrentStep(step.label);
-        setProgress(prev => {
-          if (prev < step.value) return prev + 2;
-          stepIndex++;
-          return prev;
-        });
+        if (step) {
+          setCurrentStep(step.label);
+          setProgress(prev => {
+            if (prev < step.value) return prev + 2;
+            stepIndex++;
+            return prev;
+          });
+        }
       }
     }, 100);
 
