@@ -13,7 +13,7 @@ function AuthCallbackPage() {
   useEffect(() => {
     supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate({ to: '/dashboard' });
+        navigate({ to: '/_authenticated/dashboard' });
       } else {
         navigate({ to: '/auth' });
       }
