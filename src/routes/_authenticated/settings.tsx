@@ -14,7 +14,8 @@ import {
   Moon,
   Zap,
   Bot,
-  Loader2
+  Loader2,
+  ArrowLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -77,15 +78,23 @@ function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="mx-auto max-w-5xl space-y-8">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-          <p className="text-muted-foreground">Manage your account, integrations, and AI preferences.</p>
+    <div className="min-h-screen bg-background p-4 md:p-8">
+      <div className="mx-auto max-w-5xl space-y-6 md:space-y-8">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" asChild className="shrink-0 lg:hidden">
+            <Link to="/dashboard">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+          </Button>
+          <div className="space-y-1">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Settings</h1>
+            <p className="text-muted-foreground text-xs md:text-sm hidden sm:block">Manage your account, integrations, and AI preferences.</p>
+          </div>
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="bg-card/50 border border-border/40 p-1">
+          <ScrollArea className="w-full whitespace-nowrap">
+            <TabsList className="bg-card/50 border border-border/40 p-1 w-full inline-flex md:w-auto">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Profile
@@ -102,7 +111,8 @@ function SettingsPage() {
               <CreditCard className="h-4 w-4" />
               Billing
             </TabsTrigger>
-          </TabsList>
+            </TabsList>
+          </ScrollArea>
 
           <TabsContent value="profile" className="space-y-6">
             <Card className="border-border/40 bg-card/50">
