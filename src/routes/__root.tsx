@@ -129,14 +129,17 @@ function RootComponent() {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const publicPaths = ['/', '/auth', '/auth/callback'];
-      const isPublicPath = publicPaths.includes(location.pathname);
+      const currentPath = location.pathname;
+      const isPublicPath = publicPaths.includes(currentPath);
+
+      console.log(`Auth event: ${event}, Session: ${!!session}, Path: ${currentPath}`);
 
       if (event === 'SIGNED_OUT') {
         if (!isPublicPath) {
           navigate({ to: '/auth' });
         }
       } else if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-        if (location.pathname === '/auth') {
+        if (session && currentPath === '/auth') {
           navigate({ to: '/dashboard' });
         }
       }

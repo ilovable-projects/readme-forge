@@ -23,21 +23,34 @@ function AuthCallbackPage() {
     let subscription: any = null;
 
     const handleAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!mounted) return;
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Auth callback error:", error);
+          toast.error("Authentication failed. Please try again.");
+          if (mounted) navigate({ to: '/auth' });
+          return;
+        }
 
-      if (type === 'recovery') {
-        navigate({ to: '/auth' }); 
-        toast.info("You can now reset your password");
-        return;
-      }
+        if (!mounted) return;
 
-      if (session) {
-        navigate({ to: '/dashboard' });
-      } else {
+        if (type === 'recovery') {
+          navigate({ to: '/auth' }); 
+          toast.info("You can now reset your password");
+          return;
+        }
+
+        if (session) {
+          console.log("Session found, navigating to dashboard");
+          navigate({ to: '/dashboard' });
+          return;
+        }
+
+        // Only set up listener if no session exists yet
         const { data } = supabase.auth.onAuthStateChange((event, session) => {
           if (!mounted) return;
+          console.log("Auth state change in callback:", event, !!session);
           if (session) {
             navigate({ to: '/dashboard' });
           } else if (event === 'SIGNED_OUT') {
@@ -46,11 +59,20 @@ function AuthCallbackPage() {
         });
         subscription = data.subscription;
         
+        // Timeout to prevent infinite loading if auth fails to resolve
         setTimeout(() => {
-          if (mounted && !session) {
-            navigate({ to: '/auth' });
+          if (mounted) {
+            supabase.auth.getSession().then(({ data: { session } }) => {
+              if (!session && mounted) {
+                console.warn("Auth timeout reached, no session found");
+                navigate({ to: '/auth' });
+              }
+            });
           }
-        }, 10000);
+        }, 5000);
+      } catch (err) {
+        console.error("Unexpected error in auth callback:", err);
+        if (mounted) navigate({ to: '/auth' });
       }
     };
 

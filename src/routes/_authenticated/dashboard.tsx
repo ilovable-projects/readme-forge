@@ -30,7 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth, useRepositories } from "@/hooks/use-data";
+import { useAuth, useRepositories, useProfile } from "@/hooks/use-data";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 
@@ -73,6 +73,7 @@ const RECENT_REPOS = [
 
 function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
+  const { data: profile } = useProfile();
   const { data: repositories, isLoading: reposLoading } = useRepositories();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -184,7 +185,7 @@ function DashboardPage() {
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Welcome back, {user?.email?.split('@')[0]}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Welcome back, {profile?.full_name || user?.email?.split('@')[0]}</h1>
               <p className="text-muted-foreground">Manage your repository documentation and health scores.</p>
             </div>
             <Button className="rounded-lg shadow-lg shadow-primary/20" asChild>
