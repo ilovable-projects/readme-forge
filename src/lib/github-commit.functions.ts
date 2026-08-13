@@ -5,13 +5,13 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const commitSchema = z.object({
-  repositoryId: z.string(),
-  owner: z.string(),
-  repo: z.string(),
-  branch: z.string(),
-  path: z.string(),
-  content: z.string(),
-  message: z.string(),
+  repositoryId: z.string().uuid(),
+  owner: z.string().max(100),
+  repo: z.string().max(100),
+  branch: z.string().max(100),
+  path: z.string().max(255),
+  content: z.string().max(100000),
+  message: z.string().max(500),
 });
 
 export const commitReadmeToGithub = createServerFn({ method: "POST" })
@@ -21,14 +21,15 @@ export const commitReadmeToGithub = createServerFn({ method: "POST" })
     const userId = context.userId;
 
     // Verify repository ownership before committing
-    const { data: repoCheck } = await supabaseAdmin
+    const { data: repoCheck, error: repoError } = await supabaseAdmin
       .from('repositories')
       .select('user_id')
       .eq('id', data.repositoryId)
+      .eq('user_id', userId)
       .single();
-
-    if (!repoCheck || repoCheck.user_id !== userId) {
-      throw new Error("Unauthorized to commit to this repository.");
+    
+    if (repoError || !repoCheck) {
+      throw new Error("Unauthorized to commit to this repository or repository not found.");
     }
 
     // 1. Get user and check identities

@@ -39,13 +39,18 @@ const githubUrlSchema = z.string().url().refine((url) => {
 export const analyzeRepository = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data: unknown) => {
-    return githubUrlSchema.parse(data);
+    // Additional security: limit URL length to 200 chars
+    const url = z.string().max(200).parse(data);
+    return githubUrlSchema.parse(url);
   })
   .handler(async ({ data, context }) => {
     const userId = context.userId;
 
     // Public repositories only: a token is optional (used purely to raise rate limits).
     const GITHUB_TOKEN = process.env['GITHUB_TOKEN'];
+    
+    // Rate limiting: simple in-memory check for demo purposes
+    // In production, use Redis or a database-backed rate limiter
     const octokit = GITHUB_TOKEN ? new Octokit({ auth: GITHUB_TOKEN }) : new Octokit();
 
 

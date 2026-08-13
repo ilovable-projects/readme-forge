@@ -36,6 +36,13 @@ const healthSearchSchema = z.object({
 
 export const Route = createFileRoute("/_authenticated/health")({
   validateSearch: (search) => healthSearchSchema.parse(search),
+  head: () => ({
+    title: "Documentation Health Report | READMEForge",
+    meta: [
+      { name: "description", content: "Detailed analysis of your project's documentation quality, accuracy, and completeness." },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: HealthPage,
 });
 

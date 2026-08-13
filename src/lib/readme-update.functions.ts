@@ -12,7 +12,13 @@ const updateReadmeSchema = z.object({
 
 export const updateReadmeWithAi = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data) => updateReadmeSchema.parse(data))
+  .validator((data) => {
+    const schema = updateReadmeSchema.extend({
+      currentContent: z.string().max(100000),
+      differences: z.array(z.any()).max(50),
+    });
+    return schema.parse(data);
+  })
   .handler(async ({ data, context }) => {
     const { currentContent, differences, documentId } = data;
     const userId = context.userId;

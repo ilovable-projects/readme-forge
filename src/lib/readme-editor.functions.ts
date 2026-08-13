@@ -21,7 +21,13 @@ const editSectionSchema = z.object({
 
 export const editReadmeSection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data) => editSectionSchema.parse(data))
+  .validator((data) => {
+    // Additional security: limit content length to 100k
+    const schema = editSectionSchema.extend({
+      currentContent: z.string().max(100000),
+    });
+    return schema.parse(data);
+  })
   .handler(async ({ data, context }) => {
     const { sectionTitle, currentContent, action, context: techContext, documentId } = data;
     const userId = context.userId;

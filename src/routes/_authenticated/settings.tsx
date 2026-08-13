@@ -33,6 +33,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/settings")({
+  head: () => ({
+    title: "Account Settings | READMEForge",
+    meta: [
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: SettingsPage,
 });
 

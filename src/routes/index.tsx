@@ -20,11 +20,17 @@ import {
 
 export const Route = createFileRoute("/")({
   head: () => ({
-    title: "READMEForge | Turn Any GitHub Repository Into a Professional README",
+    title: "READMEForge | Best AI README Generator for GitHub",
     meta: [
-      { name: "description", content: "AI-powered GitHub README generator and analyzer. Analyze your repository, generate accurate documentation, and keep your README in sync with your code." },
-      { property: "og:title", content: "READMEForge | AI-Powered README Generator" },
-      { property: "og:description", content: "Professional GitHub READMEs generated from your actual repository contents." },
+      { name: "description", content: "Create professional GitHub READMEs in seconds with READMEForge, the #1 AI-powered documentation tool. Automatically analyze your repository and generate accurate, high-quality README.md files." },
+      { name: "keywords", content: "AI README generator, GitHub README tool, automated documentation, README.md creator, developer tools, GitHub repository analyzer" },
+      { property: "og:title", content: "READMEForge | Best AI README Generator for GitHub" },
+      { property: "og:description", content: "Transform your GitHub repository with professional AI-generated documentation. The ultimate README.md creator for developers." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "robots", content: "index, follow" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "canonical", content: "https://readmeforge.com/" }
     ],
   }),
   component: LandingPage,
@@ -50,10 +56,25 @@ function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
+      <script type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "READMEForge",
+          "operatingSystem": "Web",
+          "applicationCategory": "DeveloperApplication",
+          "description": "AI-powered GitHub README generator and analyzer. Turn any repository into professional documentation.",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          }
+        })}
+      </script>
       {/* Navigation */}
       <nav className="fixed top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link to="/" className="flex items-center gap-2 group">
+          <Link to="/" className="flex items-center gap-2 group" aria-label="READMEForge Home">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary group-hover:scale-105 transition-transform">
               <Code2 className="h-5 w-5 text-primary-foreground" />
             </div>
@@ -75,14 +96,14 @@ function LandingPage() {
         </div>
       </nav>
 
-      <main className="pt-16">
+      <main id="main-content" className="pt-16">
         {/* Hero Section */}
         <section className="relative overflow-hidden py-24 sm:py-32">
           {/* Subtle background glow */}
           <div className="absolute top-1/2 left-1/2 -z-10 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[120px]" />
           
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-4xl text-center">
+            <header className="mx-auto max-w-4xl text-center">
               <Badge variant="outline" className="mb-6 rounded-full border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-semibold tracking-wider text-primary uppercase">
                 <Sparkles className="mr-2 h-3 w-3" />
                 Next-Gen Developer Tools
@@ -98,6 +119,8 @@ function LandingPage() {
                 <div className="relative flex-1">
                   <GitGraph className="absolute top-3 left-4 h-5 w-5 text-muted-foreground" />
                   <Input 
+                    id="repo-url"
+                    aria-label="GitHub Repository URL"
                     placeholder="https://github.com/username/repo" 
                     className="h-12 border-border/50 bg-secondary/30 pl-11 ring-offset-background focus-visible:ring-primary/30"
                     value={url}
@@ -113,59 +136,59 @@ function LandingPage() {
               <p className="mb-16 text-sm text-muted-foreground">
                 Supporting all public GitHub repositories. No access required.
               </p>
+            </header>
 
-              {/* Visual Demo Card */}
-              <div className="relative mx-auto max-w-5xl rounded-2xl border border-border/40 bg-card/50 p-2 shadow-2xl backdrop-blur-sm sm:p-4">
-                <div className="flex flex-col gap-4 overflow-hidden rounded-xl border border-border/30 bg-background/80 p-6 md:flex-row">
-                  {/* Analysis Step */}
-                  <div className="flex flex-1 flex-col items-start gap-4 border-b border-border/30 pb-6 text-left md:border-b-0 md:border-r md:pb-0 md:pr-6">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                      <Search className="h-5 w-5 text-primary" />
+            {/* Visual Demo Card */}
+            <div className="relative mx-auto max-w-5xl rounded-2xl border border-border/40 bg-card/50 p-2 shadow-2xl backdrop-blur-sm sm:p-4">
+              <div className="flex flex-col gap-4 overflow-hidden rounded-xl border border-border/30 bg-background/80 p-6 md:flex-row">
+                {/* Analysis Step */}
+                <div className="flex flex-1 flex-col items-start gap-4 border-b border-border/30 pb-6 text-left md:border-b-0 md:border-r md:pb-0 md:pr-6">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                    <Search className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Analysis</h3>
+                    <p className="text-sm text-muted-foreground">Reading dependencies, structure, and metadata.</p>
+                  </div>
+                  <div className="mt-2 w-full space-y-2">
+                    <div className="h-2 w-full rounded-full bg-secondary/50 overflow-hidden">
+                      <div className="h-full w-[65%] bg-primary animate-pulse" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold">Analysis</h3>
-                      <p className="text-sm text-muted-foreground">Reading dependencies, structure, and metadata.</p>
-                    </div>
-                    <div className="mt-2 w-full space-y-2">
-                      <div className="h-2 w-full rounded-full bg-secondary/50 overflow-hidden">
-                        <div className="h-full w-[65%] bg-primary animate-pulse" />
-                      </div>
-                      <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest">
-                        <span>Scanning components...</span>
-                        <span>65%</span>
-                      </div>
+                    <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest">
+                      <span>Scanning components...</span>
+                      <span>65%</span>
                     </div>
                   </div>
-                  
-                  {/* Generation Step */}
-                  <div className="flex flex-1 flex-col items-start gap-4 border-b border-border/30 pb-6 text-left md:border-b-0 md:border-r md:pb-0 md:pr-6 md:pl-6">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                      <Zap className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">AI Generation</h3>
-                      <p className="text-sm text-muted-foreground">Drafting features, installation, and usage guides.</p>
-                    </div>
-                    <div className="mt-2 w-full space-y-1">
-                      <div className="h-3 w-3/4 rounded bg-muted/40" />
-                      <div className="h-3 w-1/2 rounded bg-muted/40" />
-                      <div className="h-3 w-2/3 rounded bg-muted/40" />
-                    </div>
+                </div>
+                
+                {/* Generation Step */}
+                <div className="flex flex-1 flex-col items-start gap-4 border-b border-border/30 pb-6 text-left md:border-b-0 md:border-r md:pb-0 md:pr-6 md:pl-6">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                    <Zap className="h-5 w-5 text-primary" />
                   </div>
+                  <div>
+                    <h3 className="font-semibold">AI Generation</h3>
+                    <p className="text-sm text-muted-foreground">Drafting features, installation, and usage guides.</p>
+                  </div>
+                  <div className="mt-2 w-full space-y-1">
+                    <div className="h-3 w-3/4 rounded bg-muted/40" />
+                    <div className="h-3 w-1/2 rounded bg-muted/40" />
+                    <div className="h-3 w-2/3 rounded bg-muted/40" />
+                  </div>
+                </div>
 
-                  {/* Result Step */}
-                  <div className="flex flex-1 flex-col items-start gap-4 pt-6 text-left md:pt-0 md:pl-6">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                      <BarChart3 className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">README Score</h3>
-                      <p className="text-sm text-muted-foreground">94/100 Health score with improvement tips.</p>
-                    </div>
-                    <div className="mt-2 flex items-baseline gap-1">
-                      <span className="text-3xl font-bold text-primary">94</span>
-                      <span className="text-sm text-muted-foreground">/100</span>
-                    </div>
+                {/* Result Step */}
+                <div className="flex flex-1 flex-col items-start gap-4 pt-6 text-left md:pt-0 md:pl-6">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                    <BarChart3 className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">README Score</h3>
+                    <p className="text-sm text-muted-foreground">94/100 Health score with improvement tips.</p>
+                  </div>
+                  <div className="mt-2 flex items-baseline gap-1">
+                    <span className="text-3xl font-bold text-primary">94</span>
+                    <span className="text-sm text-muted-foreground">/100</span>
                   </div>
                 </div>
               </div>
@@ -325,11 +348,13 @@ function LandingPage() {
               </div>
               <span className="font-bold">READMEForge</span>
             </div>
-            <p className="text-sm text-muted-foreground">© 2026 READMEForge. Built for developers by developers.</p>
-            <div className="flex items-center gap-6">
-              <a href="#" className="text-sm text-muted-foreground hover:text-foreground">Terms</a>
+            <p className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} READMEForge. Built for developers.
+            </p>
+            <div className="flex gap-6">
               <a href="#" className="text-sm text-muted-foreground hover:text-foreground">Privacy</a>
-              <a href="#" className="text-sm text-muted-foreground hover:text-foreground">GitHub</a>
+              <a href="#" className="text-sm text-muted-foreground hover:text-foreground">Terms</a>
+              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground">GitHub</a>
             </div>
           </div>
         </div>
