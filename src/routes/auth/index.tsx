@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { GithubIcon as Github, Loader2, Mail } from 'lucide-react';
+import { Github, Loader2, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const Route = createFileRoute('/auth/')({
