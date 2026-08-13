@@ -66,7 +66,7 @@ const editorSearchSchema = z.object({
   repositoryId: z.string().optional(),
 });
 
-export const Route = createFileRoute("/editor/")({
+export const Route = createFileRoute("/_authenticated/editor/")({
   validateSearch: (search) => editorSearchSchema.parse(search),
   component: EditorPage,
 });

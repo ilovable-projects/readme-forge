@@ -20,7 +20,7 @@ import { Progress } from "@/components/ui/progress";
 import { useAuth, useAnalyzeRepository } from "@/hooks/use-data";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/analyzer/")({
+export const Route = createFileRoute("/_authenticated/analyzer/")({
   component: AnalyzerPage,
 });
 
