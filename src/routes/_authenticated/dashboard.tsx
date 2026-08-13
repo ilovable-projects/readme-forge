@@ -144,7 +144,7 @@ function DashboardPage() {
       </div>
 
       <header className="lg:hidden fixed top-0 left-0 right-0 h-16 border-b border-border/40 bg-card/30 backdrop-blur-xl z-40 flex items-center justify-center">
-        <Link to="/dashboard" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2" aria-label="READMEForge Home">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
             <Code2 className="h-5 w-5 text-primary-foreground" />
           </div>
