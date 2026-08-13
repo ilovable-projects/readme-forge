@@ -137,15 +137,22 @@ function AnalyzerPage() {
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="mx-auto max-w-4xl space-y-8">
-        <div className="space-y-2 text-center md:text-left">
-          <h1 className="text-3xl font-bold tracking-tight">Repository Analyzer</h1>
-          <p className="text-muted-foreground text-lg">
-            Connect READMEForge to your public GitHub repository for a deep scan.
-          </p>
+      <div className="mx-auto max-w-4xl space-y-6 md:space-y-8">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" asChild className="shrink-0">
+            <Link to="/dashboard">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+          </Button>
+          <div className="space-y-1">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Repository Analyzer</h1>
+            <p className="text-muted-foreground text-sm md:text-lg hidden sm:block">
+              Connect READMEForge to your public GitHub repository for a deep scan.
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h2 className="text-xl font-bold flex items-center gap-2">
             <GitBranch className="h-5 w-5" />
             Import from GitHub
@@ -154,7 +161,7 @@ function AnalyzerPage() {
             variant="outline" 
             size="sm" 
             onClick={() => setShowUrlInput(!showUrlInput)}
-            className="text-primary border-primary/20 hover:bg-primary/5"
+            className="w-full sm:w-auto text-primary border-primary/20 hover:bg-primary/5"
           >
             {showUrlInput ? "Select from list" : "Enter URL manually"}
             {showUrlInput ? <ArrowRight className="ml-2 h-4 w-4 rotate-180" /> : <Plus className="ml-2 h-4 w-4" />}
