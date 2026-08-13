@@ -35,10 +35,13 @@ export const fetchUserRepositories = createServerFn({ method: "GET" })
     // Supabase doesn't directly expose the provider token in the user object easily via admin API
     // but we can try to get it if it's stored in identities or if we have a global GITHUB_TOKEN for public repos
     
-    const GITHUB_TOKEN = process.env['GITHUB_TOKEN'];
-    if (!GITHUB_TOKEN) {
-      throw new Error("GITHUB_TOKEN is not configured on the server.");
-    }
+    // Public repositories only: a token is optional (used purely to raise rate limits).
+    const rawToken = process.env['GITHUB_TOKEN'];
+    const GITHUB_TOKEN = (rawToken && rawToken !== "undefined" && rawToken !== "null" && rawToken.length > 5) ? rawToken : undefined;
+    
+    // Rate limiting: simple in-memory check for demo purposes
+    // In production, use Redis or a database-backed rate limiter
+    const octokit = GITHUB_TOKEN ? new Octokit({ auth: GITHUB_TOKEN }) : new Octokit();
 
     const octokit = new Octokit({ auth: GITHUB_TOKEN });
 

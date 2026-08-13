@@ -319,6 +319,25 @@ export const analyzeRepository = createServerFn({ method: "POST" })
                                               
                                                   
                                                   
+                                                  For the code present, I get the error below.
+
+Please think step-by-step in order to resolve it.
+```
+Error: GITHUB_TOKEN is not configured on the server.
+
+{
+  "timestamp": 1786641132858,
+  "error_type": "RUNTIME_ERROR",
+  "filename": "http://localhost:8080/_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZ2l0aHViLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJmZXRjaFVzZXJSZXBvc2l0b3JpZXNfY3JlYXRlU2VydmVyRm5faGFuZGxlciJ9",
+  "lineno": 0,
+  "colno": 0,
+  "stack": "Error: GITHUB_TOKEN is not configured on the server.\n    at Object.eval (/dev-server/src/lib/github.functions.ts:40:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async server (/dev-server/node_modules/@tanstack/start-client-core/src/createServerFn.ts:944:24)\n    at async callNextMiddleware (/dev-server/node_modules/@tanstack/start-client-core/src/createServerFn.ts:322:24)\n    at async userNext (/dev-server/node_modules/@tanstack/start-client-core/src/createServerFn.ts:312:26)\n    at async callNextMiddleware (/dev-server/node_modules/@tanstack/start-client-core/src/createServerFn.ts:322:24)\n    at async AsyncFunction.__executeServer (/dev-server/node_modules/@tanstack/start-client-core/src/createServerFn.ts:212:20)\n    at async eval (/dev-server/node_modules/@tanstack/start-server-core/src/server-functions-handler.ts:148:18)\n    at async eval (/dev-server/node_modules/@tanstack/start-server-core/src/server-functions-handler.ts:81:17)\n    at async handleServerAction (/dev-server/node_modules/@tanstack/start-server-core/src/server-functions-handler.ts:418:10)",
+  "has_blank_screen": true
+}
+```
+                                              
+                                                  
+                                                  
       return repoData;
     } catch (error: any) {
       if (error.status === 404) {
