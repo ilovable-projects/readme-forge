@@ -38,10 +38,10 @@ const githubUrlSchema = z.string().url().refine((url) => {
 
 export const analyzeRepository = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data) => z.string().url().parse(data) as string)
+  .validator((data) => z.string().url().parse(data))
   .handler(async ({ data, context }) => {
-    const repoUrl = data as string;
     const userId = context.userId;
+    const repoUrl = data as string;
     if (!repoUrl) throw new Error("URL is required");
 
     const GITHUB_TOKEN = process.env['GITHUB_TOKEN'];
