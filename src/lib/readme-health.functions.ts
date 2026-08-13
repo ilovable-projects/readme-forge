@@ -36,7 +36,7 @@ const scoreRequestSchema = z.object({
 export const calculateReadmeScore = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data) => scoreRequestSchema.parse(data))
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
     const { documentId, repositoryId, content } = data;
     
     // 1. Fetch Analysis Context
@@ -47,7 +47,9 @@ export const calculateReadmeScore = createServerFn({ method: "POST" })
       .maybeSingle();
       
     if (analysisError) throw analysisError;
-    const analysis = (analysisData?.analysis_data || {}) as StructuredAnalysis;
+    
+    // Type casting through unknown to satisfy TS
+    const analysis = (analysisData?.analysis_data as unknown) as StructuredAnalysis;
 
     const issues: Issue[] = [];
     const categories: Record<string, CategoryResult> = {};
@@ -85,7 +87,7 @@ export const calculateReadmeScore = createServerFn({ method: "POST" })
     let installScore = hasInstallation ? 100 : 0;
     
     // Technical verification for Installation
-    if (hasInstallation && analysis.packageManager?.value) {
+    if (hasInstallation && analysis?.packageManager?.value) {
       const pm = analysis.packageManager.value;
       const expectedCmd = pm === 'npm' ? 'npm install' : pm === 'yarn' ? 'yarn' : pm === 'pnpm' ? 'pnpm install' : 'bun install';
       if (!content.includes(expectedCmd)) {
@@ -134,7 +136,7 @@ export const calculateReadmeScore = createServerFn({ method: "POST" })
     // 6. Configuration (Env Vars)
     const hasConfig = checkSection(['configuration', 'environment variables', 'setup', 'config']);
     let configScore = hasConfig ? 100 : 100;
-    if (analysis.envVars?.value?.length > 0 && !hasConfig) {
+    if (analysis?.envVars?.value?.length > 0 && !hasConfig) {
       configScore = 20;
       issues.push({ 
         level: 'warning', 
@@ -156,7 +158,7 @@ export const calculateReadmeScore = createServerFn({ method: "POST" })
     // 7. Testing
     const hasTesting = checkSection(['testing', 'tests', 'running tests']);
     let testingScore = hasTesting ? 100 : 100;
-    if (analysis.commands?.test?.value && !hasTesting) {
+    if (analysis?.commands?.test?.value && !hasTesting) {
       testingScore = 40;
       issues.push({ 
         level: 'suggestion', 
@@ -189,7 +191,7 @@ export const calculateReadmeScore = createServerFn({ method: "POST" })
     // 9. Accuracy
     // Check if mentioned language/framework matches analysis
     let accuracyScore = 100;
-    if (analysis.language?.value) {
+    if (analysis?.language?.value) {
       if (!content.toLowerCase().includes(analysis.language.value.toLowerCase())) {
         accuracyScore -= 20;
         issues.push({ 
@@ -250,7 +252,7 @@ export const calculateReadmeScore = createServerFn({ method: "POST" })
         metadata: {
           categories,
           calculated_at: new Date().toISOString()
-        }
+        } as any
       }, { onConflict: 'readme_document_id' });
 
     if (scoreError) console.error("Failed to save score:", scoreError);

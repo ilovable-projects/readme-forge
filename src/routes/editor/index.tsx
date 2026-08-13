@@ -44,6 +44,7 @@ import ReactMarkdown from "react-markdown";
 import debounce from "lodash.debounce";
 import { useServerFn } from "@tanstack/react-start";
 import { editReadmeSection } from "@/lib/readme-editor.functions";
+import { calculateReadmeScore } from "@/lib/readme-health.functions";
 
 const editorSearchSchema = z.object({
   repositoryId: z.string().optional(),
@@ -73,6 +74,7 @@ function EditorPage() {
   const { repositoryId } = useSearch({ from: '/editor/' });
   const { user } = useAuth();
   const editSectionFn = useServerFn(editReadmeSection);
+  const calculateScoreFn = useServerFn(calculateReadmeScore);
 
   const [markdown, setMarkdown] = useState("");
   const [initialMarkdown, setInitialMarkdown] = useState("");
